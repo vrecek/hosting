@@ -1,0 +1,36 @@
+@import '../config';
+
+
+nav.layout-navigation {
+    background: $clr-blackl;
+    padding: .75em 1.2em;
+    @include Flex(sb, c);
+
+    ul {
+        list-style: none;
+        display: flex;
+
+        li {
+            margin-left: .5em;
+
+            a {
+                text-decoration: none;
+                color: $clr-whitel;
+
+                span {
+                    display: block;
+                        @include FullSize(25px);
+                }
+            }
+        }
+    }
+
+    a.logo {
+        color: $clr-whited;
+        text-decoration: none;
+        font-family: 'PoppinsMono';
+        font-weight: 400;
+        letter-spacing: -1px;
+        font-size: 1.2rem;
+    }
+}

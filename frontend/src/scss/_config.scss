@@ -1,0 +1,132 @@
+// # # # # # # # # # # # # # # # # # # COMMENTS # # # # # # # # # # # # # # # # # # # # #
+/*
+   Media queries: 1200px | 1000px | 768px | 480px
+*/
+
+// # # # # # # # # # # # # # # # # # # # COLORS # # # # # # # # # # # # # # # # # # # # #
+
+$clr-blackd: rgb(45, 45, 45);
+$clr-blackl: rgb(60, 60, 60);
+
+$clr-whitel: rgb(245, 245, 245);
+$clr-whitelr: rgb(250, 250, 250);
+$clr-whited: rgb(225, 225, 225); 
+
+$clr-greyl: rgb(215, 215, 215);
+$clr-greyd: rgb(180, 180, 180);
+$clr-greydr: rgb(90, 90, 90);
+
+$clr-greenl: rgb(4, 170, 109);
+$clr-greenlr: rgb(13, 217, 71);
+$clr-greend: rgb(21, 160, 67);
+
+$clr-bluel: rgb(109, 160, 255);
+$clr-blued: rgb(49, 85, 190);
+
+$clr-purple: rgb(159, 51, 213);
+
+$clr-red: rgb(199, 11, 11);
+
+$clr-orangel: rgb(255, 136, 0);
+$clr-oranged: rgb(230, 72, 15);
+
+// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+
+
+// # # # # # # # # # # # # # # # LOCAL PROJECT VARIABLES # # # # # # # # # # # # # # # # #
+
+
+
+// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+
+
+
+// # # # # # # # # # # # # # # # # # MIXINS # # # # # # # # # # # # # # # # # # # # # # # 
+
+// Sets both width and height to $size
+@mixin FullSize($size: 100%) {
+   width: $size;
+   height: $size;
+}
+
+// Sets the minimum, current, and maximum width of a container
+@mixin SetWidth($minPX, $curr, $max) {
+   width: $curr;
+   min-width: #{$minPX}px;
+   max-width: #{$max};
+}
+// Resets the min/max width properties. Use with SetWidth
+@mixin ResetWidth {
+   min-width: auto;
+   max-width: none;
+}
+
+// Sets the z-index
+@mixin Layer($zIndex: 2, $pos: relative) {
+   position: $pos;
+   z-index: $zIndex;
+}
+
+// Sets the bottom shadow
+@mixin BottomShadow($px, $clr: $clr-blackd) {
+   box-shadow: 0 #{$px}px #{$px}px -#{$px}px $clr;
+}
+
+// Makes the responsive font size easier to use
+@mixin Clamp($min, $vw, $max) {
+   font-size: clamp(#{$min}rem, #{$vw}vw, #{$max}rem);
+}
+
+// Makes the flex properties easier to use
+@mixin Flex($justify: none, $align: none, $dir: none) {
+   display: flex;
+   justify-content: FlexFunc($justify);
+   align-items: FlexFunc($align);
+   flex-direction: FlexDirFunc($dir);
+}
+
+// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+
+
+
+// # # # # # # # # # # # # # # # HELPER FUNCTIONS # # # # # # # # # # # # # # # # # # # # #
+
+@function FlexFunc($val) {
+   $finalVal: none;
+
+   @if $val == sb { $finalVal: space-between; }
+   @else if $val == c { $finalVal: center }
+   @else if $val == sa { $finalVal: space-around; }
+   @else if $val == fe { $finalVal: flex-end; }
+   @else if $val == fs { $finalVal: flex-start; }
+   @else if $val == st { $finalVal: stretch; }
+
+   @return $finalVal;
+}
+@function FlexDirFunc($val) {
+   $finalVal: row;
+
+   @if $val == c { $finalVal: column; }
+   @else if $val == cr { $finalVal: column-reverse }
+   @else if $val == rr { $finalVal: row-reverse; }
+   
+   @return $finalVal;
+}
+
+// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+
+
+
+// # # # # # # # # # # # # # # # # LOCAL PROJECT MIXINS # # # # # # # # # # # # # # # # # #
+
+
+
+// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
