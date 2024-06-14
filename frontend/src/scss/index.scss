@@ -7,22 +7,30 @@
     box-sizing: border-box;
     font-weight: 400;
     font-size: 22px;
+    font-family: 'Poppins';
+
+    @font-face {
+        font-family: 'Poppins';
+        src: url('../fonts/Poppins-Regular.ttf');
+    }
+
+    @font-face {
+        font-family: 'Inter';
+        src: url('../fonts/Inter.ttf');
+    }
+
+    @font-face {
+        font-family: 'UbuntuMono';
+        src: url('../fonts/UbuntuMono-Regular.ttf');
+    }
 }
 
 body {
-    @font-face {
-        font-family: 'Poppins';
-        src: url('../fonts/Poppins/Poppins-Regular.ttf');
-    }
-
-    @font-face {
-        font-family: 'PoppinsMono';
-        src: url('../fonts/UbuntuMono/UbuntuMono-Regular.ttf');
-    }
-
-    font-family: 'Poppins';
+    
     background: $clr-blackd;
     color: $clr-whitel;
+    width: 100vw;
+    min-height: 100vh;
 
     svg {
         @include FullSize;

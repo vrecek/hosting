@@ -1,0 +1,147 @@
+@import '../config';
+
+
+main.collection {
+    padding: 2em;
+
+    section.main-container {
+        @include Flex(sb, c);
+        flex-wrap: wrap;
+
+        article {
+            margin-right: .5em;
+            margin-bottom: 3em;
+            border-radius: .2em;
+        }
+
+        article.collection-movie {
+            padding: .75em;
+            position: relative;
+            @include Flex(sb);
+            flex-direction: column;
+            width: 30%;
+            aspect-ratio: 1.5;
+
+            div.title-icons {
+                @include Flex(sb, fe);
+
+                section.movie-icons {
+                    span {
+                        display: block;
+                        cursor: pointer;
+                        color: $clr-whited;
+                        @include FullSize(30px);
+                        margin-top: .5em;
+                        transition: 250ms;
+                        text-shadow: 0 0 3px $clr-blackd;
+
+                        &:hover {
+                            color: $clr-bluel;
+                        }
+                    }                    
+                }
+
+                p.title {
+                    font-family: 'Inter';
+                    text-align: right;
+                    font-weight: 900;
+                    font-size: 1.75rem;
+                    margin-left: 1.7em;
+                    letter-spacing: -1px;
+                    text-shadow: 0 0 3px $clr-blackd;
+                }
+            }
+
+            div.time-type {
+                @include Flex(sb, c);
+                margin-bottom: 2em;
+
+                p {
+                    font-size: .8rem;
+                    padding: .25em .35em;
+                    font-family: 'UbuntuMono';
+                    background: $clr-blackd;
+                }
+            }
+
+            figure {
+                @include FullSize;
+                position: absolute;
+                left: 0;
+                z-index: -1;
+                opacity: .4;
+                top: 0;
+
+                img {
+                    @include FullSize;
+                    object-fit: cover;
+                }
+            }
+        }
+
+        article.collection-folder,
+        article.collection-file {
+            padding: 1em;
+            width: 15%;
+            aspect-ratio: 1;
+            @include Flex(c, c);
+            flex-direction: column;
+            cursor: pointer;
+
+            p.num,
+            p.size {
+                font-size: .8rem;
+                margin-top: .5em;
+                color: $clr-greyd;
+            }
+
+            p.title,
+            p.name {
+                word-break: break-all;
+                text-align: center;
+                color: $clr-whitedr;
+                font-size: 1.1rem;
+                margin-top: .25em;
+            }
+
+            span {
+                display: block;
+                @include FullSize(80px);
+            }
+        }
+        
+        article.collection-file {
+            width: 20%;
+        }
+    }
+
+    section.header-section {
+        margin-bottom: 3em;
+
+        h1 {
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+    
+        div {
+            span {
+                font-size: .8rem;
+                cursor: pointer;
+    
+                &:not(.current)::after {
+                    content: '>';
+                    padding: 0 .5em;
+                    cursor: default;
+                    pointer-events: none;
+                }
+                
+                &.current {
+                    color: $clr-bluel;
+                    pointer-events: none;
+                    border-bottom: 1px solid $clr-bluel;
+                }
+            }
+        }
+    }
+}

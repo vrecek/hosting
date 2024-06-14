@@ -3,8 +3,9 @@
 
 nav.layout-navigation {
     background: $clr-blackl;
-    padding: .75em 1.2em;
+    padding: 0 1.2em;
     @include Flex(sb, c);
+    height: $nav-height;
 
     ul {
         list-style: none;
@@ -19,7 +20,7 @@ nav.layout-navigation {
 
                 span {
                     display: block;
-                        @include FullSize(25px);
+                    @include FullSize(25px);
                 }
             }
         }
@@ -28,8 +29,7 @@ nav.layout-navigation {
     a.logo {
         color: $clr-whited;
         text-decoration: none;
-        font-family: 'PoppinsMono';
-        font-weight: 400;
+        font-family: 'UbuntuMono';
         letter-spacing: -1px;
         font-size: 1.2rem;
     }

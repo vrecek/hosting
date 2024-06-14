@@ -5,16 +5,18 @@
 
 // # # # # # # # # # # # # # # # # # # # COLORS # # # # # # # # # # # # # # # # # # # # #
 
-$clr-blackd: rgb(45, 45, 45);
 $clr-blackl: rgb(60, 60, 60);
+$clr-blackd: rgb(45, 45, 45);
 
-$clr-whitel: rgb(245, 245, 245);
 $clr-whitelr: rgb(250, 250, 250);
+$clr-whitel: rgb(240, 240, 240);
 $clr-whited: rgb(225, 225, 225); 
+$clr-whitedr: rgb(210, 210, 210); 
 
-$clr-greyl: rgb(215, 215, 215);
-$clr-greyd: rgb(180, 180, 180);
-$clr-greydr: rgb(90, 90, 90);
+$clr-greylr: rgb(195, 195, 195);
+$clr-greyl: rgb(180, 180, 180);
+$clr-greyd: rgb(150, 150, 150);
+$clr-greydr: rgb(110, 110, 110);
 
 $clr-greenl: rgb(4, 170, 109);
 $clr-greenlr: rgb(13, 217, 71);
@@ -37,7 +39,7 @@ $clr-oranged: rgb(230, 72, 15);
 
 // # # # # # # # # # # # # # # # LOCAL PROJECT VARIABLES # # # # # # # # # # # # # # # # #
 
-
+$nav-height: 60px;
 
 // # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -46,6 +48,15 @@ $clr-oranged: rgb(230, 72, 15);
 
 
 // # # # # # # # # # # # # # # # # # MIXINS # # # # # # # # # # # # # # # # # # # # # # # 
+
+// Darkens the element on hover
+@mixin HoverBG($transition: 250ms) {
+   transition: $transition;
+   
+   &:hover {
+      filter: brightness(80%)
+   }
+}
 
 // Sets both width and height to $size
 @mixin FullSize($size: 100%) {
