@@ -17,9 +17,11 @@ nav.layout-navigation {
             a {
                 text-decoration: none;
                 color: $clr-whitel;
+                @include HoverBG(250ms, auto, $clr-bluelr);
 
                 span {
                     display: block;
+                    background: inherit;
                     @include FullSize(25px);
                 }
             }

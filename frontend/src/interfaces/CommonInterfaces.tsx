@@ -23,7 +23,7 @@ export interface IInput
 
 export interface IButton
 {
-    children: string
+    children: any
     cname?:   string
     clickFn?: (e: React.MouseEvent) => void
 }

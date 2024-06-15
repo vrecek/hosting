@@ -1,0 +1,49 @@
+@import '../config';
+
+
+main.homepage {
+    @include Flex(sa, c);
+    height: calc(100vh - $nav-height);
+    padding: 2em;
+
+    article {
+        width: 40%;
+
+        h1 {
+            font-weight: 900;
+            font-family: 'Inter';
+            font-size: 2.75rem;
+        }
+
+        p {
+            font-size: .85rem;
+            margin: 2em 0 4em 0;
+            color: $clr-whitedr;
+        }
+
+        button {
+            @include HoverBG;
+            border: 0;
+            outline: 0;
+            background: $clr-blued;
+            padding: .75em;
+            width: 100%;
+            border-radius: 2em;
+
+            a {
+                color: $clr-whitel;
+                width: 100%;
+                text-decoration: none;
+            }
+        }
+    }
+
+    figure {
+        width: 40%;
+        filter: brightness(80%);
+
+        img {
+            width: 100%;
+        }
+    }
+}

@@ -22,6 +22,7 @@ $clr-greenl: rgb(4, 170, 109);
 $clr-greenlr: rgb(13, 217, 71);
 $clr-greend: rgb(21, 160, 67);
 
+$clr-bluelr:rgb(160, 214, 255);
 $clr-bluel: rgb(109, 160, 255);
 $clr-blued: rgb(49, 85, 190);
 
@@ -50,11 +51,14 @@ $nav-height: 60px;
 // # # # # # # # # # # # # # # # # # MIXINS # # # # # # # # # # # # # # # # # # # # # # # 
 
 // Darkens the element on hover
-@mixin HoverBG($transition: 250ms) {
+@mixin HoverBG($transition: 250ms, $bg: auto, $color: auto) {
    transition: $transition;
+   cursor: pointer;
    
    &:hover {
-      filter: brightness(80%)
+      color: $color;
+      background: $bg;
+      filter: brightness(80%);
    }
 }
 
