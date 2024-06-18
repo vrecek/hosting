@@ -4,15 +4,24 @@ import '@/css/Credentials.css'
 import SelectMenu from "./SelectMenu"
 import Signin from "./Signin"
 import Register from "./Register"
-
+import { UserContext } from "@/App"
+import { Maybe } from "@/interfaces/CommonInterfaces"
+import UserType from "@/interfaces/UserInterfaces"
 
 const Credentials = () => {
     const n = useNavigate()
-    const [display, setDisplay] = React.useState<JSX.Element | null>(null)
+    const [display, setDisplay] = React.useState<Maybe<JSX.Element>>(null)
+    const UserC: Maybe<UserType> = React.useContext(UserContext)
     
     const pathname: string = window.location.pathname.split('/')[2]
     
     React.useEffect(() => {
+        if (UserC)
+        {
+            n('/', { replace: true })
+            return
+        }
+
         const m: HTMLElement[] = [...document.querySelector('.credentials .select-menu')!.children] as HTMLElement[],
               l: HTMLElement   = m[1]
 

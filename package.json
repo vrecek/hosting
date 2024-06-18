@@ -1,0 +1,19 @@
+{
+  "name": "filenode",
+  "version": "1.0.0",
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "cd backend/js && nodemon index.js",
+    "client": "cd frontend && npm run dev",
+    "tsc": "cd backend && tsc --watch",
+    "app": "concurrently \"npm run server\" \"npm run client\" \"npm run tsc\""
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.3"
+  }
+}

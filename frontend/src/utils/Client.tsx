@@ -1,19 +1,14 @@
 // Aliases to export
 namespace Aliases {
-    export type Possible<T> = T | null | undefined
-
-    export type Text<T = string> = {
-        children: T
-    } 
- 
-    export type Inputs = HTMLCollectionOf<HTMLInputElement>
+    export type Maybe<T> = T | null | undefined
 }
 
 // TextBox types
 namespace RB {
     export abstract class ResultBox {
         public abstract setType(type: RB.BoxType): this
-        public abstract setPosition({left, pos, top, bottom, right, width}: BoxPositions): this
+        public abstract setStyles({left, pos, top, bottom, right, width}: BoxPositions): this
+        public abstract fadeAnimation(): this
         public abstract append(element: Element, msg: string): this
         public abstract remove(afterMs?: number): void
     }
@@ -21,12 +16,14 @@ namespace RB {
     export type BoxType = 'error' | 'warning' | 'success'
     export type Positions = 'absolute' | 'fixed' | 'static'
     export type BoxPositions = {
-        pos:     Positions
-        left?:   string
-        top?:    string
-        right?:  string
-        bottom?: string
-        width?:  string 
+        pos:      Positions
+        left?:     string
+        top?:      string
+        right?:    string
+        bottom?:   string
+        width?:    string 
+        translate?: string
+        padding?:  string
     }
     export type BoxStyles = {
         background: string
@@ -121,17 +118,19 @@ namespace FETCH {
 export default class Client {
     public static ResultBox = class extends RB.ResultBox 
     {
-        private box:            HTMLElement | null
+        private box:            HTMLElement  | null
         private typeStyles:     RB.BoxStyles | null
         private positionStyles: RB.BoxPositions
+        private removeAnim:     (() => Promise<void>) | null
 
 
         public constructor(type?: RB.BoxType)
         {
             super()
 
-            this.box         = null
-            this.typeStyles  = null
+            this.box        = null
+            this.typeStyles = null
+            this.removeAnim = null
 
             this.setType(type ?? 'error')
 
@@ -139,6 +138,7 @@ export default class Client {
                 pos: 'static',
                 left: 'auto',
                 top: 'auto',
+                translate: 'none',
                 width: '100%'
             }
         }
@@ -159,21 +159,23 @@ export default class Client {
             return this
         }
 
-        public setPosition({left, pos, top, bottom, right, width}: RB.BoxPositions): this
+        public setStyles({left, pos, top, bottom, right, width, padding, translate}: RB.BoxPositions): this
         {
             this.positionStyles = {
-                left:   left   ?? 'auto',
-                top:    top    ?? 'auto',
-                bottom: bottom ?? 'auto',
-                right:  right  ?? 'auto',
-                width:  width  ?? '100%',
+                left:      left      ?? 'auto',
+                top:       top       ?? 'auto',
+                bottom:    bottom    ?? 'auto',
+                right:     right     ?? 'auto',
+                width:     width     ?? '100%',
+                translate: translate ?? 'none',
+                padding:   padding   ?? '.75em',
                 pos
             }
 
             return this
         }
 
-        public append(element: Element, msg: string): this
+        public append(element: Element, msg: string, cname?: string): this
         {
             if (this.box || !this.typeStyles) return this
 
@@ -181,20 +183,22 @@ export default class Client {
                   p:    HTMLDivElement  = document.createElement('p'),
                   span: HTMLSpanElement = document.createElement('span')
 
+            div.className = cname ?? 'resultbox-element'
 
             const WHITE_COLOR: string = 'rgb(250, 250, 250)'
-            const {pos, bottom, left, right, top, width} = this.positionStyles
-
+            const {pos, bottom, left, right, top, width, padding, translate} = this.positionStyles
+            
             Object.assign(div.style, {
                 background: this.typeStyles.background,
                 display: 'flex',
                 justifyContent: 'space-around',
                 alignItems: 'center',
-                padding: '.75em',
                 borderRadius: '.2em',
+                zIndex: '100',
                 color: WHITE_COLOR,
                 position: pos,
-                zIndex: '100',
+                translate,
+                padding,
                 left,
                 right,
                 bottom,
@@ -231,14 +235,30 @@ export default class Client {
 
             this.box = div
 
-            element.appendChild(this.box)
+            element.appendChild(div)
             
+            return this
+        }
+
+        public fadeAnimation(): this
+        {
+            const transitionMs: number = 1000
+
+            this.removeAnim = async () => {
+                this.box!.style.transition = `${transitionMs}ms`
+                this.box!.style.top = '-100%'
+
+                return new Promise(res => setTimeout(res, transitionMs))
+            }
+
             return this
         }
 
         public remove(afterMs?: number): void
         {
-            setTimeout(() => {
+            setTimeout(async () => {
+                await this.removeAnim?.()
+
                 this.box?.remove()
                 this.box = null
 
@@ -420,7 +440,7 @@ export default class Client {
                 backgroundClr: dotStyles?.backgroundClr ?? 'rgba(30, 30, 30, .9)',
                 clr1:          dotStyles?.clr1          ?? 'royalblue',
                 position:      dotStyles?.position      ?? 'fixed',
-                dotSize:       dotStyles?.dotSize       ?? 25
+                dotSize:       dotStyles?.dotSize       ?? 20
             }
 
             const { backgroundClr, clr1, position, dotSize } = appliedStyles
@@ -512,7 +532,6 @@ export default class Client {
             
             if (!res.ok) {
                 const serverMsg: string = (json as any)?.msg ?? ''
-
                 return [{...returnObj, serverMsg}, null]
             }
     
@@ -537,7 +556,7 @@ export default class Client {
         */
         public static async http<T = any>(url: string, type: FETCH.RequestType, options?: FETCH.FetchOptions): Promise<FETCH.FetchResult<T>>
         {
-            const {body, formdataBody, abortSignalMs, ...rest} = options ?? {}
+            const {body, formdataBody, abortSignalMs, credentials, ...rest} = options ?? {}
 
             if (body && typeof body !== 'object') 
                 throw `'body' is not an object. Got ${typeof body} instead`
@@ -551,6 +570,7 @@ export default class Client {
                 const res: Response = await fetch(url, {
                     method: type,
                     headers: fetchHeaders,
+                    credentials,
                     signal: AbortSignal.timeout(ABORT_TIME),
                     body: fetchBody
                 })
@@ -663,5 +683,5 @@ export type {
     FETCH,
     RB,
     LOAD,
-    DD
+    DD,
 }

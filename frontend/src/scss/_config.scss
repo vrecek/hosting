@@ -56,9 +56,13 @@ $nav-height: 60px;
    cursor: pointer;
    
    &:hover {
-      color: $color;
-      background: $bg;
-      filter: brightness(80%);
+      @if $bg != auto or $color != auto {
+         color: $color;
+         background: $bg;
+      }
+      @else {
+         filter: brightness(85%);
+      }
    }
 }
 

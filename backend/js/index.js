@@ -30,11 +30,21 @@ const express_1 = __importDefault(require("express"));
 const dotenv = __importStar(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const UserRoute_1 = __importDefault(require("./routes/UserRoute"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 dotenv.config({ path: path_1.default.join(__dirname, '../', '.env') });
 (async () => {
-    const PORT = process.env.PORT ?? '5000', MONGO = process.env.MONGO ?? '', server = (0, express_1.default)();
+    console.log('Connecting...');
+    const PORT = process.env.PORT, MONGO = process.env.MONGO, server = (0, express_1.default)();
     server.use(express_1.default.json());
     server.use(express_1.default.urlencoded({ extended: false }));
-    await mongoose_1.default.connect(MONGO);
-    server.listen(PORT, () => console.log(`Server started at port ${PORT}`));
+    server.use((0, cookie_parser_1.default)(process.env.COOKIEKEY));
+    server.use('/filenode/api/user', UserRoute_1.default);
+    try {
+        await mongoose_1.default.connect(MONGO, { serverSelectionTimeoutMS: 10000 });
+        server.listen(PORT, () => console.log(`Server started at port ${PORT}`));
+    }
+    catch (err) {
+        console.log(`Could not start the server. Reason: ${err.toString()}`);
+    }
 })();

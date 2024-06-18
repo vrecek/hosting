@@ -17,7 +17,7 @@ nav.layout-navigation {
             a {
                 text-decoration: none;
                 color: $clr-whitel;
-                @include HoverBG(250ms, auto, $clr-bluelr);
+                @include HoverBG(250ms, auto, $clr-bluel);
 
                 span {
                     display: block;

@@ -87,6 +87,7 @@ main.collection {
             @include Flex(c, c);
             flex-direction: column;
             cursor: pointer;
+            transition: 250ms;
 
             p.num,
             p.size {
@@ -108,6 +109,10 @@ main.collection {
                 display: block;
                 @include FullSize(80px);
             }
+
+            &:hover {
+                background: rgba(30, 30, 30, .5);
+            }
         }
         
         article.collection-file {
@@ -120,26 +125,40 @@ main.collection {
 
         h1 {
             text-transform: uppercase;
-            font-weight: bold;
+            font-family: 'Inter';
+            font-weight: 900;
+            color: $clr-whitelr;
             font-size: 1.5rem;
         }
     
         div {
-            span {
+            display: flex;
+            margin-top: .5em;
+            
+            span.folder-icon {
+                display: block;
+                @include FullSize(25px);
+                margin-right: .75em;
+            }
+
+            span:not(.folder-icon) {
                 font-size: .8rem;
-                cursor: pointer;
+                pointer-events: none;
     
-                &:not(.current)::after {
-                    content: '>';
-                    padding: 0 .5em;
-                    cursor: default;
-                    pointer-events: none;
+                &.prev {
+                    color: $clr-whited;
+                    cursor: pointer;
+                    @include HoverBG;
+                    pointer-events: all;
+                }
+
+                &.gt {
+                    margin: 0 .5em;
+                    color: $clr-whitelr;
                 }
                 
                 &.current {
-                    color: $clr-bluel;
-                    pointer-events: none;
-                    border-bottom: 1px solid $clr-bluel;
+                    color: $clr-bluelr;
                 }
             }
         }

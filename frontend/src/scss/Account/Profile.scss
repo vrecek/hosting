@@ -1,0 +1,19 @@
+@import '../config';
+
+
+main.user-profile {
+    padding: 2em;
+    
+    section.logout {
+        button {
+            @include HoverBG;
+            background: $clr-red;
+            color: $clr-whitelr;
+            border-radius: .5em;
+            font-size: .9rem;
+            outline: 0;
+            border: 0;
+            padding: .75em 2em;
+        }
+    }
+}
