@@ -5,10 +5,12 @@ import CollectionFolder from './Folder/CollectionFolder'
 import CollectionFile from './File/CollectionFile'
 import React from 'react'
 import { Maybe } from '@/interfaces/CommonInterfaces'
-import UserType from '@/interfaces/UserInterfaces'
+import UserType, { ICollectionFolder } from '@/interfaces/UserInterfaces'
 import { UserContext } from '@/App'
 import { Location, useLocation, useNavigate } from 'react-router-dom'
 import { ItemsObject, LocationState } from '@/interfaces/CollectionInterfaces'
+import NewFolder from './NewFolder'
+import findFolder from '@/utils/findFolder'
 
 
 const Collection = () => {
@@ -18,19 +20,21 @@ const Collection = () => {
     const n = useNavigate()
 
     React.useEffect(() => {
-        if (!user)
+        const stateFolder:   string = l.state?.folderTree ?? 'root' 
+        const currentFolder: ICollectionFolder | null = findFolder(stateFolder, user?.saved)
+
+        if (!currentFolder)
         {
             n('/', { replace: true })
             return
         }
 
-        const currentFolder: string = l.state?.folderName ?? 'root' 
-
         const items: ItemsObject = {
             itemtype: 'folder',
-            name: currentFolder,
-            prevFolders: [], // fetch
-            items: [] //fetch for currentFolder
+            name: currentFolder.name,
+            tree: currentFolder.tree,
+            prevFolders: currentFolder.tree.split('/').slice(0, -1),
+            items: currentFolder.items
         }
 
         setItems(items)
@@ -40,8 +44,13 @@ const Collection = () => {
     if (items)
     return (
         <main className="collection">
+            
+            <section className="top">
 
-            <CollectionHeader prevFolders={items.prevFolders} current={items.name} />
+                <CollectionHeader prevFolders={items.prevFolders} current={items.name} />
+                <NewFolder currentTree={items.tree} />
+
+            </section>
 
             <section className="main-container">
 
@@ -51,10 +60,19 @@ const Collection = () => {
                         {
                             case 'file':
                                 return <CollectionFile key={i} />
+
                             case 'folder':
-                                return <CollectionFolder key={i} />
+                                x = x as ICollectionFolder
+                                return  <CollectionFolder 
+                                            key={i} 
+                                            folder_name={x.name} 
+                                            folder_tree={x.tree} 
+                                            items_len={x.items.length}
+                                        />
+
                             case 'movie':
                                 return <CollectionMovie key={i} />
+
                             default: 
                                 return <></>
                         }

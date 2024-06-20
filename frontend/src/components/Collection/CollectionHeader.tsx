@@ -8,11 +8,14 @@ import React from "react"
 const CollectionHeader = ({ prevFolders, current }: ICollectionHeader) => {
     const n = useNavigate()
 
-    const redirectFolder = (folderName: string): void => 
-        n('/collection', { state: { folderName } })
+    const redirectFolder = (clickIndex: number): void => 
+        n('/collection', {
+            state: {
+                folderTree: prevFolders.slice(0, clickIndex + 1).join('/')
+            } 
+        })
+        
     
-
-
     return (
         <section className='header-section'>
             
@@ -26,7 +29,7 @@ const CollectionHeader = ({ prevFolders, current }: ICollectionHeader) => {
                     prevFolders.map((x, i) => (
                         <React.Fragment key={i}>
 
-                            <span className="prev" onClick={() => redirectFolder(x)}>
+                            <span className="prev" onClick={() => redirectFolder(i)}>
                                 {x}
                             </span>
 

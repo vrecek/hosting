@@ -17,6 +17,8 @@ const userSchema = new mongoose_1.default.Schema({
                 items: [{
                         name: String,
                         itemtype: String,
+                        tree: String,
+                        items: Array,
                         filetype: String,
                         sizeKB: Number,
                         path: String,
@@ -25,9 +27,10 @@ const userSchema = new mongoose_1.default.Schema({
                         description: String
                     }],
                 name: String,
-                itemtype: String
+                itemtype: String,
+                tree: String
             }],
-        default: [{ name: 'root', itemtype: 'folder', items: [] }]
+        default: [{ name: 'root', itemtype: 'folder', tree: 'root', items: [] }]
     }
 });
 exports.default = mongoose_1.default.model('User', userSchema);

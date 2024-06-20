@@ -15,8 +15,10 @@ const userSchema = new mongoose.Schema<UserSchema>({
     saved: {
         type: [{
             items: [{
-                name: String,
+                name:     String,
                 itemtype: String,
+                tree:     String,
+                items:    Array,
     
                 filetype:    String,
                 sizeKB:      Number,
@@ -26,11 +28,12 @@ const userSchema = new mongoose.Schema<UserSchema>({
                 description: String
             }],
     
-            name: String,
-            itemtype: String
+            name:     String,
+            itemtype: String,
+            tree:     String
         }],
 
-        default: [{ name: 'root', itemtype: 'folder', items: [] }]
+        default: [{ name: 'root', itemtype: 'folder', tree: 'root', items: [] }]
     }
 })
 

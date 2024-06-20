@@ -9,3 +9,5 @@ export interface ICheckboxInput
     id:     string
     cname?: string
 }
+
+export type CredentialsBody = (ele: HTMLInputElement[]) => any

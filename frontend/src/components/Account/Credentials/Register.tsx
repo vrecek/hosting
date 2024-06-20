@@ -5,50 +5,34 @@ import PasswordInputs from "./PasswordInputs"
 import CheckboxInput from "./CheckboxInput"
 import Client from "@/utils/Client"
 import React from "react"
+import credentialsAction from "@/utils/Login_Register"
+import { useNavigate } from "react-router-dom"
 
 
 const Register = () => {
-    const captcha_ref = React.useRef<any>(null)
-    const [box]       = React.useState(new Client.ResultBox())
+    const cref  = React.useRef<any>(null)
+    const [box] = React.useState(new Client.ResultBox())
+    const n     = useNavigate()
 
     const registerFn = async (e: React.FormEvent): Promise<void> => {
-        e.preventDefault()
+        await credentialsAction(
+            e, import.meta.env.VITE_USER_REGISTER, box, 'Successfully created',
+            (ele: HTMLInputElement[]) => {
+                const [u, m, p, p2, ch, ca] = ele.map(x => x.type === 'checkbox' ? x.checked : x.value)
 
-        const t:   HTMLFormElement    = e.currentTarget! as HTMLFormElement,
-              ele: HTMLInputElement[] = [...t.elements] as HTMLInputElement[]
+                return {
+                    username: u,
+                    mail: m,
+                    password: p,
+                    confirm_password: p2,
+                    checkbox: ch,
+                    captcha: ca
+                }
+            },
+            () => n('/account/signin')
+        )
 
-        const load = new Client.Loading()
-        load.defaultStyleDots({
-            backgroundClr: 'rgba(30, 30, 30, .75)',
-            clr1: 'royalblue',
-            dotSize: 15,
-            position: 'absolute'
-        }).append(t)
-
-        const [u, m, p, p2, ch, ca] = ele.map(x => x.type === 'checkbox' ? x.checked : x.value)
-        const [err] = await Client.Fetches.http(import.meta.env.VITE_USER_REGISTER, 'POST', {
-            body: {
-                username: u,
-                mail: m,
-                password: p,
-                confirm_password: p2,
-                checkbox: ch,
-                captcha: ca
-            }
-        })
-
-        load.remove()
-
-        box.setType(err ? 'error' : 'success')
-           .setStyles({ pos: 'absolute', top: '0', left: '0', width: '100%', padding: '1.25em' })
-           .append(t, err ? err.serverMsg : 'Successfully created')
-           .fadeAnimation()
-           .remove(2000)
-
-        if (!err)
-            ele.map(x => x.value = '')
-
-        captcha_ref!.current.reset()
+        cref!.current.reset()
     }
 
 
@@ -59,9 +43,9 @@ const Register = () => {
             <Input type="text" label="E-mail" />
             <PasswordInputs />
             <CheckboxInput id="tos" label="Accept ToS" cname="tos" />
-            <ReCAPTCHA ref={captcha_ref} sitekey={import.meta.env.VITE_CAPTCHA_CLIENT} />
+            <ReCAPTCHA ref={cref} sitekey={import.meta.env.VITE_CAPTCHA_CLIENT} />
 
-            <Button>Register</Button>
+            <Button triggerForm>Register</Button>
 
         </form>
     )

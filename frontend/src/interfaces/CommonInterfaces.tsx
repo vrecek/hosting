@@ -26,9 +26,10 @@ export interface IInput
 
 export interface IButton
 {
-    children: any
-    cname?:   string
-    clickFn?: (e: React.MouseEvent) => void
+    children:     any
+    cname?:       string
+    triggerForm?: boolean
+    clickFn?:     (e: React.MouseEvent) => void
 }
 
 export type Set<T> = React.Dispatch<React.SetStateAction<T>>

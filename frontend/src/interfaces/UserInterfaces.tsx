@@ -10,6 +10,7 @@ export default interface UserType
 export interface ItemType
 {
     itemtype: 'folder' | 'file' | 'movie'
+    tree:      string
 }
 
 export type ICollectionMovie = Omit<ICollectionFile,'filetype'> & 

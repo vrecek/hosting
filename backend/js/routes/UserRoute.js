@@ -8,6 +8,8 @@ const Server_1 = __importDefault(require("../Server"));
 const User_1 = __importDefault(require("../models/User"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const JWTAuth_1 = __importDefault(require("../jwt/JWTAuth"));
+const findFolder_1 = __importDefault(require("../utils/findFolder"));
+const findUpdateString_1 = __importDefault(require("../utils/findUpdateString"));
 const UserRoute = express_1.default.Router();
 UserRoute.get('/auth', JWTAuth_1.default, async (req, res) => {
     try {
@@ -77,10 +79,53 @@ UserRoute.post('/logout', JWTAuth_1.default, (req, res) => {
     req.id = undefined;
     res.status(200).json({ msg: 'Logged out' });
 });
-UserRoute.delete('/delete', JWTAuth_1.default, async (req, res) => {
+UserRoute.patch('/new-folder', JWTAuth_1.default, async (req, res) => {
+    const { foldername, atFolder } = req.body;
+    if (Server_1.default.sanitizedString(foldername))
+        return res.status(400).json({ msg: 'Invalid folder name' });
+    if (!foldername || !atFolder)
+        return res.status(400).json({ msg: 'Invalid body object' });
     try {
-        if (!await User_1.default.exists({ _id: req.id }))
-            return res.status(400).json({ msg: 'Account does not exist' });
+        const user = await User_1.default.findById(req.id)
+            .select('saved')
+            .lean();
+        const target = (0, findFolder_1.default)(atFolder, user.saved);
+        if (!target)
+            return res.status(400).json({ msg: 'Folder does not exist' });
+        if (target.items.some(x => x.name === foldername))
+            return res.status(400).json({ msg: 'Folder already exists' });
+        const newFolder = {
+            items: [],
+            itemtype: 'folder',
+            name: foldername,
+            tree: `${target.tree}/${foldername}`
+        };
+        const saveAt = (0, findUpdateString_1.default)(target.tree, user.saved);
+        await User_1.default.updateOne({ _id: req.id }, { $push: {
+                [saveAt]: newFolder
+            } });
+        // DELETE
+        // await User.updateOne(
+        //     { _id: req.id },
+        //     { $pull: {
+        //         'saved.0.items': {name: 'xde'}
+        //     }}
+        // )
+        // await User.updateOne(
+        //     { _id: req.id },
+        //     { $pull: {
+        //         'saved.0.items.0.items.0.items': {name: 'drugittzy'}
+        //     }}
+        // )
+        res.status(201).json({ msg: 'Successfully created a new folder' });
+    }
+    catch (E) {
+        console.log(E);
+        res.status(500).json({ msg: 'Could not create a directory' });
+    }
+});
+UserRoute.delete('/delete-user', JWTAuth_1.default, async (req, res) => {
+    try {
         await User_1.default.deleteOne({ _id: req.id });
         res.clearCookie('token');
         req.id = undefined;
@@ -89,5 +134,8 @@ UserRoute.delete('/delete', JWTAuth_1.default, async (req, res) => {
     catch {
         res.status(500).json({ msg: 'Could not delete the account' });
     }
+});
+UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
+    res.json(true);
 });
 exports.default = UserRoute;

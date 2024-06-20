@@ -11,6 +11,7 @@ export default interface UserSchema
 export interface ItemType
 {
     itemtype: 'folder' | 'file' | 'movie'
+    tree:      string
 }
 
 export type CollectionMovie = Omit<CollectionFile,'filetype'> & 
@@ -30,9 +31,11 @@ export interface CollectionFile extends ItemType
 
 export interface CollectionFolder extends ItemType
 {
-    items: (CollectionFile|CollectionMovie|CollectionFolder)[]
-    name:  string
+    items: PossibleItem[]
+    name:   string
 }
+
+export type PossibleItem = CollectionFile|CollectionMovie|CollectionFolder
 
 export interface PasswordObject
 {

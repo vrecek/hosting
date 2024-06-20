@@ -54,6 +54,13 @@ class Server {
         errArr && error && errArr.push(error);
         return { success: !error, error };
     }
+    static sanitizedString(str, illegal, replaceChar) {
+        const illegalChars = illegal ?? ['.', ',', '<', '>', ';', ':'];
+        if (!replaceChar)
+            return str ? illegalChars.some(x => str.includes(x)) : true;
+        const rx = new RegExp(`[${illegalChars.join('')}]`, 'g');
+        return str.replaceAll(rx, replaceChar);
+    }
     //|*********|//
     //| HASHING |//
     //|*********|//

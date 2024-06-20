@@ -2,6 +2,11 @@ import crypto from 'crypto'
 import { Request } from 'express'
 
 
+namespace i {
+    export type Maybe<T> = T | null | undefined
+}
+
+
 class Server
 {
 
@@ -82,6 +87,24 @@ class Server
         return { success: !error, error }
     }
 
+    //|************|//
+    //| SANITIZING |//
+    //|************|//
+
+    public static sanitizedString(str: string, illegal?: string[]): boolean
+    public static sanitizedString(str: string, illegal?: string[], replaceChar?: string): string
+
+    public static sanitizedString(str: string, illegal?: string[], replaceChar?: string): string | boolean
+    {
+        const illegalChars: string[] = illegal ?? ['.', ',', '<', '>', ';', ':']
+        
+        if (!replaceChar)
+            return str ? illegalChars.some(x => str.includes(x)) : true
+
+        const rx: RegExp = new RegExp(`[${illegalChars.join('')}]`, 'g')
+        return str.replaceAll(rx, replaceChar)
+    }
+
     //|*********|//
     //| HASHING |//
     //|*********|//
@@ -153,6 +176,11 @@ export interface Validation
 {
     success: boolean
     error:   string | null
+}
+
+
+export {
+    i
 }
 
 

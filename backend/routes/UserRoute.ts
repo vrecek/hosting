@@ -1,9 +1,11 @@
 import express, {Router, Request, Response} from 'express'
-import Server from '../Server'
+import Server, { i } from '../Server'
 import User from '../models/User'
-import UserSchema from '../interfaces/UserSchema'
+import UserSchema, { CollectionFolder } from '../interfaces/UserSchema'
 import jwt from 'jsonwebtoken'
 import JWTAuth from '../jwt/JWTAuth'
+import findFolder from '../utils/findFolder'
+import findUpdateString from '../utils/findUpdateString'
 
 
 const UserRoute: Router = express.Router()
@@ -110,13 +112,70 @@ UserRoute.post('/logout', JWTAuth, (req: Request, res: Response) => {
     res.status(200).json({ msg: 'Logged out' })
 })
 
-UserRoute.delete('/delete', JWTAuth, async (req: Request, res: Response) => {
+UserRoute.patch('/new-folder', JWTAuth, async (req: Request, res: Response) => {
+    const {foldername, atFolder} = req.body
+
+    if (Server.sanitizedString(foldername))
+        return res.status(400).json({ msg: 'Invalid folder name' })
+
+    if (!foldername || !atFolder)
+        return res.status(400).json({ msg: 'Invalid body object' })
+
     try
     {
-        if (!await User.exists({ _id: req.id }))
-            return res.status(400).json({ msg: 'Account does not exist' })
+        const user = await User.findById(req.id)
+                               .select('saved')
+                               .lean()
 
-        
+        const target: i.Maybe<CollectionFolder> = findFolder(atFolder, user!.saved)
+
+        if (!target)
+            return res.status(400).json({ msg: 'Folder does not exist' })
+
+        if (target.items.some(x => x.name === foldername))
+            return res.status(400).json({ msg: 'Folder already exists' })
+
+        const newFolder: CollectionFolder = {
+            items: [],
+            itemtype: 'folder',
+            name: foldername,
+            tree: `${target.tree}/${foldername}`
+        }
+
+        const saveAt: string = findUpdateString(target.tree, user!.saved)
+        await User.updateOne(
+            { _id: req.id },
+            { $push: {
+                [saveAt]: newFolder
+            }}
+        )
+
+        // DELETE
+        // await User.updateOne(
+        //     { _id: req.id },
+        //     { $pull: {
+        //         'saved.0.items': {name: 'xde'}
+        //     }}
+        // )
+        // await User.updateOne(
+        //     { _id: req.id },
+        //     { $pull: {
+        //         'saved.0.items.0.items.0.items': {name: 'drugittzy'}
+        //     }}
+        // )
+
+        res.status(201).json({ msg: 'Successfully created a new folder' })
+    }
+    catch (E)
+    {
+        console.log(E)
+        res.status(500).json({ msg: 'Could not create a directory' })
+    }
+})
+
+UserRoute.delete('/delete-user', JWTAuth, async (req: Request, res: Response) => {
+    try
+    {
         await User.deleteOne({ _id: req.id })
 
         res.clearCookie('token')
@@ -128,6 +187,11 @@ UserRoute.delete('/delete', JWTAuth, async (req: Request, res: Response) => {
     {
         res.status(500).json({ msg: 'Could not delete the account' })
     }
+})
+
+UserRoute.delete('/delete-folder', JWTAuth, async (req: Request, res: Response) => {
+
+    res.json(true)
 })
 
 
