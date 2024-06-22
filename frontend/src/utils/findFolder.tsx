@@ -5,12 +5,11 @@ const _nextFolder = (searchFor: string, item: ICollectionFolder): ICollectionFol
     if (item.tree === searchFor)
         return item
 
-    for (const x of item.items)
-        if (x.itemtype === 'folder')
-        {
-            const found: ICollectionFolder | undefined = _nextFolder(searchFor, x as ICollectionFolder)
-            if (found) return found
-        }
+    for (const x of item.items.filter(y => y.itemtype === 'folder'))
+    {
+        const found: ICollectionFolder | undefined = _nextFolder(searchFor, x as ICollectionFolder)
+        if (found) return found
+    }
 }
 
 

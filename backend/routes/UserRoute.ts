@@ -142,7 +142,7 @@ UserRoute.patch('/new-folder', JWTAuth, async (req: Request, res: Response) => {
             tree: `${target.tree}/${foldername}`
         }
 
-        const saveAt: string = findUpdateString(target.tree, user!.saved)
+        const saveAt: string = findUpdateString(target.tree, user!.saved, 'push')
         await User.updateOne(
             { _id: req.id },
             { $push: {
@@ -150,25 +150,10 @@ UserRoute.patch('/new-folder', JWTAuth, async (req: Request, res: Response) => {
             }}
         )
 
-        // DELETE
-        // await User.updateOne(
-        //     { _id: req.id },
-        //     { $pull: {
-        //         'saved.0.items': {name: 'xde'}
-        //     }}
-        // )
-        // await User.updateOne(
-        //     { _id: req.id },
-        //     { $pull: {
-        //         'saved.0.items.0.items.0.items': {name: 'drugittzy'}
-        //     }}
-        // )
-
         res.status(201).json({ msg: 'Successfully created a new folder' })
     }
-    catch (E)
+    catch
     {
-        console.log(E)
         res.status(500).json({ msg: 'Could not create a directory' })
     }
 })
@@ -190,8 +175,38 @@ UserRoute.delete('/delete-user', JWTAuth, async (req: Request, res: Response) =>
 })
 
 UserRoute.delete('/delete-folder', JWTAuth, async (req: Request, res: Response) => {
+    const { foldername, atFolder } = req.body
 
-    res.json(true)
+    if (!foldername || !atFolder)
+        return res.status(400).json({ msg: 'Invalid body object' })
+
+
+    try
+    {
+        const user = await User.findById(req.id)
+                               .select('saved')
+                               .lean()
+
+        const target: i.Maybe<CollectionFolder> = findFolder(atFolder, user!.saved)
+
+        if (!target)
+            return res.status(400).json({ msg: 'Folder does not exist' })
+
+
+        let delAt: string = findUpdateString(target.tree, user!.saved, 'pull')
+        await User.updateOne(
+            { _id: req.id },
+            { $pull: {
+                [delAt]: {name: foldername}
+            }}
+        )
+
+        res.status(201).json({ msg: 'Successfully deleted the folder' })
+    }
+    catch
+    {
+        res.status(500).json({ msg: 'Could not create a directory' })
+    }
 })
 
 

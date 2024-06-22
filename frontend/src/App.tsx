@@ -10,64 +10,59 @@ import UserType from './interfaces/UserInterfaces'
 import Client from './utils/Client'
 import { Maybe } from './interfaces/CommonInterfaces'
 import { AppInit } from './interfaces/LayoutInterfaces'
+import defaultLoad from './utils/DefaultLoad'
 
 
 const UserContext = React.createContext<Maybe<UserType>>(null)
 
 
 function App() {
-   const [user, setUser] = React.useState<AppInit>({ loaded: false, user: null })
+    const [user, setUser] = React.useState<AppInit>({ loaded: false, user: null })
 
-   React.useEffect(() => {
-      (async () => {
-         const load = new Client.Loading()
-         load.defaultStyleDots({
-            backgroundClr: '#303030',
-            clr1: 'royalblue',
-            position: 'fixed',
-            dotSize: 20
-         }).append(document.body)
+    React.useEffect(() => {
+        (async () => {
+            const load = defaultLoad(document.body)
 
-         const [_, data] = await Client.Fetches.http<UserType>(
-            import.meta.env.VITE_USER_AUTH,'GET', 
-            { credentials: 'include'}
-         )
+            const [_, data] = await Client.Fetches.http<UserType>(
+                import.meta.env.VITE_USER_AUTH,'GET', 
+                { credentials: 'include'}
+            )
 
-         setUser({
-            loaded: true,
-            user: data?.json
-         })
+            setUser({
+                loaded: true,
+                user: data?.json
+            })
 
-         load.remove()
-      })()
-   }, [])
+            load.remove()
+        })()
+    }, [])
 
 
-   if (user.loaded)
-   return (
-      <>
-         <BrowserRouter>
+    if (user.loaded)
+    return (
+        <>
+            <BrowserRouter>
 
-            <UserContext.Provider value={user.user}>
+                <UserContext.Provider value={user.user}>
 
-               <LayoutNavigation />
+                    <LayoutNavigation />
 
-               <Routes>
+                    <Routes>
 
-                  <Route path='/' element={<Home />} />
-                  <Route path='/collection' element={<Collection />} />
-                  <Route path='/account/*' element={<Credentials />} />
-                  <Route path='/account' element={<Profile />} />
+                        <Route path='/' element={<Home />} />
+                        <Route path='/collection' element={<Collection />} />
+                        <Route path='/account/*' element={<Credentials />} />
+                        <Route path='/account' element={<Profile />} />
 
-               </Routes>
+                    </Routes>
 
-            </UserContext.Provider>
+                </UserContext.Provider>
 
-         </BrowserRouter>
-      </>
-   )
+            </BrowserRouter>
+        </>
+    )
 
-   return <></>
+    return <></>
 }
 
 

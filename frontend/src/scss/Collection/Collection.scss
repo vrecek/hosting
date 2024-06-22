@@ -124,8 +124,11 @@ main.collection {
         @include Flex(sb, fs);
         margin-bottom: 3em;
 
-        section.new-folder {
-            div.folder-popup {
+        section.manage-options {
+            display: flex;
+
+            div.folder-add-popup,
+            div.folder-del-popup {
                 width: 100%;
                 height: 100%;
                 position: fixed;
@@ -134,34 +137,17 @@ main.collection {
                 background: rgba(30, 30, 30, .75);
                 @include Flex(c, c);
 
-                form {
+                form,
+                section.menu {
                     position: relative;
                     background: $clr-blackd;
                     padding: 2em;
                     border-radius: .25em;
                     width: 25%;
 
-                    p {
-                        text-transform: uppercase;
-                        font-size: .9rem;
-                        font-family: 'UbuntuMono';
-                        color: $clr-whitedr;
-                    }
-
-                    input {
-                        background: $clr-blackl;
-                        border-radius: .25em;
-                        margin: .4em 0 1em 0;
-                        color: $clr-whitel;
-                        padding: .5em .6em;
-                        font-size: .85rem;
-                        outline: 0;
-                        border: 0;
-                        width: 100%;
-                    }
-
-                    div {
-                        @include Flex;
+                    div.btns {
+                        @include Flex;  
+                        margin-top: 1.25em;
 
                         button {
                             display: block;
@@ -172,29 +158,98 @@ main.collection {
                             outline: 0;
                             font-size: .8rem;
                             color: $clr-whitel;
-
-                            &.cancel {
-                                background: $clr-red;
-                            }
-
-                            &.save {
-                                background: $clr-blued;
-                            }
                         }
                     }
                 }
             }
 
-            span.new-folder {
-                background: $clr-blued;
+            div.folder-add-popup {
+                form {
+                    p {
+                        text-transform: uppercase;
+                        font-size: .9rem;
+                        font-family: 'UbuntuMono';
+                        color: $clr-whitedr;
+                    }
+
+                    input {
+                        background: $clr-blackl;
+                        border-radius: .25em;
+                        margin-top: .4em;
+                        color: $clr-whitel;
+                        padding: .5em .6em;
+                        font-size: .85rem;
+                        outline: 0;
+                        border: 0;
+                        width: 100%;
+                    }
+
+                    div button {
+                        &.cancel {
+                            background: $clr-red;
+                        }
+
+                        &.save {
+                            background: $clr-blued;
+                        }
+                    }
+                }
+            }
+
+            div.folder-del-popup {
+                section.menu {
+                    p {
+                        text-align: center;
+
+                        &.info {
+                            font-weight: 800;
+                            font-size: 1.5rem;
+                            font-family: 'Inter';
+                        }
+
+                        &.name {
+                            font-size: .9rem;
+                            color: $clr-greylr;
+                            margin: 1em 0 2em 0;
+                            font-family: 'UbuntuMono';
+
+                        }
+                    }
+                    div button {
+                        &.delete {
+                            background: $clr-red;
+                        }
+
+                        &.cancel {
+                            background: $clr-blued;
+                        }
+                    }
+                }
+            }
+
+            span.new-folder,
+            span.delete-folder {
                 border-radius: .5em;
                 @include HoverBG;
                 @include FullSize(50px);
                 @include Flex(c, c);
                 color: $clr-whitel;
+                margin-left: .5em;
     
                 svg {
                     @include FullSize(50%);
+                }
+            }
+
+            section.delete-folder {
+                span.delete-folder {
+                    background: $clr-red;
+                }
+            }
+
+            section.new-folder {
+                span.new-folder {
+                    background: $clr-blued;
                 }
             }
         }

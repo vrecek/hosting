@@ -6,12 +6,11 @@ const _nextFolder = (searchFor: string, item: CollectionFolder): i.Maybe<Collect
     if (item.tree === searchFor)
         return item
 
-    for (const x of item.items)
-        if (x.itemtype === 'folder')
-        {
-            const found: i.Maybe<CollectionFolder> = _nextFolder(searchFor, x as CollectionFolder)
-            if (found) return found
-        }
+    for (const x of item.items.filter(y => y.itemtype === 'folder'))
+    {
+        const found: i.Maybe<CollectionFolder> = _nextFolder(searchFor, x as CollectionFolder)
+        if (found) return found
+    }
 }
 
 

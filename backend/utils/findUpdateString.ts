@@ -13,7 +13,7 @@ const _nextFolder = (trees: string[], item: CollectionFolder, arr: string[]): vo
 }
 
 
-const findUpdateString = (tree: string, savedObj: CollectionFolder[]): string => {
+const findUpdateString = (tree: string, savedObj: CollectionFolder[], as: 'pull' | 'push'): string => {
     const splt:  string[] = tree.split('/'),
           trees: string[] = [tree, ...splt.map((_, i) => splt.slice(0, i).join('/')).slice(1)].toReversed(),
           indx:  string[] = []
@@ -26,7 +26,19 @@ const findUpdateString = (tree: string, savedObj: CollectionFolder[]): string =>
         _nextFolder(trees, x, indx)
     }
 
-    return `saved${indx.join('')}`
+    const finalStr: string = `saved${indx.join('')}`
+    
+    switch (as)
+    {
+        case 'push':
+            return finalStr
+
+        case 'pull':
+            return finalStr.split('.').slice(0, -2).join('.')
+
+        default:
+            return ''
+    }
 }
 
 

@@ -1,10 +1,18 @@
-import { IFolderPopup } from "@/interfaces/CollectionInterfaces"
+import { ICollectionContext, IFolderPopup } from "@/interfaces/CollectionInterfaces"
 import Button from "../Common/Button"
 import Client from "@/utils/Client"
+import { CollectionItemsContext } from "./Collection"
+import React from "react"
+import { Maybe } from "@/interfaces/CommonInterfaces"
+import { ICollectionFolder } from "@/interfaces/UserInterfaces"
+import defaultLoad from "@/utils/DefaultLoad"
+import defaultResult from "@/utils/DefaultResult"
 
 
 const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
-    const cancel = (): void => setMenu(false)
+    const items: Maybe<ICollectionContext> = React.useContext(CollectionItemsContext)!
+
+    const cancelMenu = (): void => setMenu(null)
 
     const save = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault()
@@ -12,12 +20,7 @@ const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
         const t: HTMLFormElement  = e.currentTarget! as HTMLFormElement,
               i: HTMLInputElement = t.elements[0] as HTMLInputElement
 
-        const load = new Client.Loading()
-        load.defaultStyleDots({
-            backgroundClr: 'rgba(30, 30, 30, .5)',
-            position: 'absolute',
-            dotSize: 15 
-        }).append(t)
+        const load = defaultLoad(t)
 
         const [err] = await Client.Fetches.http(import.meta.env.VITE_USER_NEWFOLDER, 'PATCH', {
             credentials: 'include',
@@ -31,35 +34,40 @@ const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
 
         if (err)
         {
-            new Client.ResultBox('error')
-                      .setStyles({ top: '0', left: '50%', width: '50%', translate: '-50% 0', pos: 'fixed' })
-                      .fadeAnimation()
-                      .append(document.body, err.serverMsg)
-                      .remove(2000)
-
+            defaultResult(err.serverMsg)
             return
         }
         
-        setMenu(false)
-        // append to items
+        cancelMenu()
+
+        items.setItems(curr => {
+            curr!.items.push({
+                items: [],
+                itemtype: 'folder',
+                name: i.value,
+                tree: `${currentTree}/${i.value}`
+            } as ICollectionFolder)
+
+            return {...curr!}
+        })
     }
 
 
     return (
-        <div className="folder-popup">
+        <div className="folder-add-popup">
 
             <form onSubmit={save}>
 
                 <p>Folder name</p>    
                 <input type='text' />
 
-                <div>
+                <div className="btns">
 
                     <Button triggerForm cname="save">
                         Confirm
                     </Button>
 
-                    <Button clickFn={cancel} cname="cancel">
+                    <Button clickFn={cancelMenu} cname="cancel">
                         Cancel
                     </Button>
 

@@ -100,27 +100,13 @@ UserRoute.patch('/new-folder', JWTAuth_1.default, async (req, res) => {
             name: foldername,
             tree: `${target.tree}/${foldername}`
         };
-        const saveAt = (0, findUpdateString_1.default)(target.tree, user.saved);
+        const saveAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'push');
         await User_1.default.updateOne({ _id: req.id }, { $push: {
                 [saveAt]: newFolder
             } });
-        // DELETE
-        // await User.updateOne(
-        //     { _id: req.id },
-        //     { $pull: {
-        //         'saved.0.items': {name: 'xde'}
-        //     }}
-        // )
-        // await User.updateOne(
-        //     { _id: req.id },
-        //     { $pull: {
-        //         'saved.0.items.0.items.0.items': {name: 'drugittzy'}
-        //     }}
-        // )
         res.status(201).json({ msg: 'Successfully created a new folder' });
     }
-    catch (E) {
-        console.log(E);
+    catch {
         res.status(500).json({ msg: 'Could not create a directory' });
     }
 });
@@ -136,6 +122,24 @@ UserRoute.delete('/delete-user', JWTAuth_1.default, async (req, res) => {
     }
 });
 UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
-    res.json(true);
+    const { foldername, atFolder } = req.body;
+    if (!foldername || !atFolder)
+        return res.status(400).json({ msg: 'Invalid body object' });
+    try {
+        const user = await User_1.default.findById(req.id)
+            .select('saved')
+            .lean();
+        const target = (0, findFolder_1.default)(atFolder, user.saved);
+        if (!target)
+            return res.status(400).json({ msg: 'Folder does not exist' });
+        let delAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'pull');
+        await User_1.default.updateOne({ _id: req.id }, { $pull: {
+                [delAt]: { name: foldername }
+            } });
+        res.status(201).json({ msg: 'Successfully deleted the folder' });
+    }
+    catch {
+        res.status(500).json({ msg: 'Could not create a directory' });
+    }
 });
 exports.default = UserRoute;

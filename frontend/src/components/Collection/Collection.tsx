@@ -8,10 +8,12 @@ import { Maybe } from '@/interfaces/CommonInterfaces'
 import UserType, { ICollectionFolder } from '@/interfaces/UserInterfaces'
 import { UserContext } from '@/App'
 import { Location, useLocation, useNavigate } from 'react-router-dom'
-import { ItemsObject, LocationState } from '@/interfaces/CollectionInterfaces'
-import NewFolder from './NewFolder'
+import { ICollectionContext, ItemsObject, LocationState } from '@/interfaces/CollectionInterfaces'
 import findFolder from '@/utils/findFolder'
+import ManageOptions from './ManageOptions'
 
+
+const CollectionItemsContext = React.createContext<Maybe<ICollectionContext>>(null)
 
 const Collection = () => {
     const [user] = React.useState<Maybe<UserType>>(React.useContext(UserContext))
@@ -20,7 +22,7 @@ const Collection = () => {
     const n = useNavigate()
 
     React.useEffect(() => {
-        const stateFolder:   string = l.state?.folderTree ?? 'root' 
+        const stateFolder: string = l.state?.folderTree ?? 'root'
         const currentFolder: ICollectionFolder | null = findFolder(stateFolder, user?.saved)
 
         if (!currentFolder)
@@ -45,41 +47,45 @@ const Collection = () => {
     return (
         <main className="collection">
             
-            <section className="top">
+            <CollectionItemsContext.Provider value={{ setItems }}>
+            
+                <section className="top">
 
-                <CollectionHeader prevFolders={items.prevFolders} current={items.name} />
-                <NewFolder currentTree={items.tree} />
+                    <CollectionHeader prevFolders={items.prevFolders} current={items.name} />
+                    <ManageOptions name={items.name} currentTree={items.tree} />
 
-            </section>
+                </section>
 
-            <section className="main-container">
+                <section className="main-container">
 
-                {
-                    items.items.map((x, i) => {
-                        switch (x.itemtype)
-                        {
-                            case 'file':
-                                return <CollectionFile key={i} />
+                    {
+                        items.items.map((x, i) => {
+                            switch (x.itemtype)
+                            {
+                                case 'file':
+                                    return <CollectionFile key={i} />
 
-                            case 'folder':
-                                x = x as ICollectionFolder
-                                return  <CollectionFolder 
-                                            key={i} 
-                                            folder_name={x.name} 
-                                            folder_tree={x.tree} 
-                                            items_len={x.items.length}
-                                        />
+                                case 'folder':
+                                    x = x as ICollectionFolder
+                                    return  <CollectionFolder 
+                                                key={i} 
+                                                folder_name={x.name} 
+                                                folder_tree={x.tree} 
+                                                items_len={x.items.length}
+                                            />
 
-                            case 'movie':
-                                return <CollectionMovie key={i} />
+                                case 'movie':
+                                    return <CollectionMovie key={i} />
 
-                            default: 
-                                return <></>
-                        }
-                    })
-                }
+                                default: 
+                                    return <></>
+                            }
+                        })
+                    }
 
-            </section>
+                </section>
+
+            </CollectionItemsContext.Provider>
 
         </main>
     )
@@ -88,4 +94,5 @@ const Collection = () => {
 }
 
 
+export { CollectionItemsContext }
 export default Collection

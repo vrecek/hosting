@@ -28,8 +28,10 @@ export interface ICollectionFile extends ItemType
     path:     string
 }
 
+export type PossibleItems = (ICollectionFile|ICollectionMovie|ICollectionFolder)
+
 export interface ICollectionFolder extends ItemType
 {
-    items: (ICollectionFile|ICollectionMovie|ICollectionFolder)[]
+    items: PossibleItems[]
     name:  string
 }
