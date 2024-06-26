@@ -1,17 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const _nextFolder = (searchFor, item) => {
-    if (item.tree === searchFor)
+const _nextFolder = (searchTreeFor, item) => {
+    if (item.tree === searchTreeFor)
         return item;
     for (const x of item.items.filter(y => y.itemtype === 'folder')) {
-        const found = _nextFolder(searchFor, x);
+        const found = _nextFolder(searchTreeFor, x);
         if (found)
             return found;
     }
 };
-const findFolder = (searchFor, savedObj) => {
+const findFolder = (searchTreeFor, savedObj) => {
     for (const folder of savedObj) {
-        const found = _nextFolder(searchFor, folder);
+        const found = _nextFolder(searchTreeFor, folder);
         if (found)
             return found;
     }

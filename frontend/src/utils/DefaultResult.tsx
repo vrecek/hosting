@@ -1,7 +1,7 @@
 import Client from "./Client"
 
 
-const defaultResult = (msg: string): void => {
+const defaultFixedResult = (msg: string): void => {
     new Client.ResultBox('error')
               .setStyles({ top: '0', left: '50%', width: '50%', translate: '-50% 0', pos: 'fixed' })
               .fadeAnimation()
@@ -10,4 +10,4 @@ const defaultResult = (msg: string): void => {
 }
 
 
-export default defaultResult
+export default defaultFixedResult

@@ -4,8 +4,14 @@ import path from 'path'
 import mongoose from 'mongoose'
 import UserRoute from './routes/UserRoute'
 import cookieParser from 'cookie-parser'
+import JWTAuth from './middleware/JWTAuth'
+import StaticAuth from './middleware/StaticAuth'
+import ffmpegPath from 'ffmpeg-static'
+import ffmpeg from 'fluent-ffmpeg'
 
 
+
+ffmpeg.setFfmpegPath(ffmpegPath!)
 dotenv.config({ path: path.join(__dirname, '../', '.env') });
 
 (async () => {
@@ -20,8 +26,10 @@ dotenv.config({ path: path.join(__dirname, '../', '.env') });
     server.use(express.urlencoded({ extended: false }))
     server.use(cookieParser(process.env.COOKIEKEY))
 
-    server.use('/filenode/api/user', UserRoute)
+    server.use('/files', JWTAuth, StaticAuth, express.static(path.join(__dirname, '..', 'uploads')))
 
+    server.use('/filenode/api/user', UserRoute)
+    
     try
     {
         await mongoose.connect(MONGO, { serverSelectionTimeoutMS: 10000 })

@@ -2,13 +2,17 @@ import { CollectionFolder } from "../interfaces/UserSchema"
 
 
 const _nextFolder = (trees: string[], item: CollectionFolder, arr: string[]): void => {
-    for (const [i, x] of Object.entries(item.items))
+    for (const [i, x] of Object.entries(item.items.filter(y => y.itemtype === 'folder')))
     {
         if (trees.some(y => y === x.tree))
+        {
             arr.push(`.${i}.items`)
 
-        if (x.itemtype === 'folder')
-            _nextFolder(trees, x as CollectionFolder, arr)
+            if (arr.length === trees.length)
+                return
+        }
+
+        _nextFolder(trees, x as CollectionFolder, arr)
     }
 }
 
@@ -21,13 +25,16 @@ const findUpdateString = (tree: string, savedObj: CollectionFolder[], as: 'pull'
     for (const [i, x] of Object.entries(savedObj))
     {
         if (splt[0] === x.tree)
+        {
             indx.push(`.${i}.items`)
+            _nextFolder(trees, x, indx)
 
-        _nextFolder(trees, x, indx)
+            break
+        }
     }
 
     const finalStr: string = `saved${indx.join('')}`
-    
+
     switch (as)
     {
         case 'push':

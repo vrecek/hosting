@@ -5,7 +5,7 @@ import CollectionFolder from './Folder/CollectionFolder'
 import CollectionFile from './File/CollectionFile'
 import React from 'react'
 import { Maybe } from '@/interfaces/CommonInterfaces'
-import UserType, { ICollectionFolder } from '@/interfaces/UserInterfaces'
+import UserType, { ICollectionFile, ICollectionFolder, ICollectionMovie } from '@/interfaces/UserInterfaces'
 import { UserContext } from '@/App'
 import { Location, useLocation, useNavigate } from 'react-router-dom'
 import { ICollectionContext, ItemsObject, LocationState } from '@/interfaces/CollectionInterfaces'
@@ -22,7 +22,9 @@ const Collection = () => {
     const n = useNavigate()
 
     React.useEffect(() => {
-        const stateFolder: string = l.state?.folderTree ?? 'root'
+        const stateFolder: string = l.state?.folderTree ?? 'root',
+              statePull:   Maybe<string> = l.state?.pull
+
         const currentFolder: ICollectionFolder | null = findFolder(stateFolder, user?.saved)
 
         if (!currentFolder)
@@ -39,7 +41,15 @@ const Collection = () => {
             items: currentFolder.items
         }
 
+        if (statePull)
+        {
+            const i: number = items.items.findIndex(x => x.name === statePull)
+
+            i !== -1 && items.items.splice(i, 1)
+        }
+
         setItems(items)
+
     }, [l])
 
 
@@ -63,7 +73,16 @@ const Collection = () => {
                             switch (x.itemtype)
                             {
                                 case 'file':
-                                    return <CollectionFile key={i} />
+                                    x = x as ICollectionFile
+                                    return <CollectionFile
+                                                key={i} 
+                                                filetype={x.filetype}
+                                                itemtype={x.itemtype}
+                                                name={x.name}
+                                                sizeBytes={x.sizeBytes}
+                                                tree={x.tree}
+                                                _id={x._id}
+                                            />
 
                                 case 'folder':
                                     x = x as ICollectionFolder
@@ -75,7 +94,15 @@ const Collection = () => {
                                             />
 
                                 case 'movie':
-                                    return <CollectionMovie key={i} />
+                                    x = x as ICollectionMovie
+                                    return <CollectionMovie 
+                                                key={i} 
+                                                _id={x._id}
+                                                length={x.length}
+                                                size={x.sizeBytes}
+                                                thumbnail={x.thumbnail}
+                                                title={x.name}
+                                            />
 
                                 default: 
                                     return <></>

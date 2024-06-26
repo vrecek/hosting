@@ -1,15 +1,14 @@
 import { IManageDelete } from "@/interfaces/CollectionInterfaces"
-import Button from "../Common/Button"
 import { useNavigate } from "react-router-dom"
 import React from "react"
 import defaultLoad from "@/utils/DefaultLoad"
 import Client from "@/utils/Client"
-import defaultResult from "@/utils/DefaultResult"
+import ButtonDiv from "./ButtonDiv"
+import defaultFixedResult from "@/utils/DefaultResult"
 
 
 const FolderDelPopup = ({ currentTree, setMenu, name }: IManageDelete) => {
     const n = useNavigate()
-
     const cancelMenu = (): void => setMenu(null)
 
     const deleteFn = async (e: React.MouseEvent): Promise<void> => {
@@ -26,11 +25,11 @@ const FolderDelPopup = ({ currentTree, setMenu, name }: IManageDelete) => {
             }
         })
 
+        load.remove()
+
         if (err)
         {
-            defaultResult(err.serverMsg)
-            load.remove()
-
+            defaultFixedResult(err.serverMsg)
             return
         }
 
@@ -38,33 +37,25 @@ const FolderDelPopup = ({ currentTree, setMenu, name }: IManageDelete) => {
 
         n('/collection', {
             state: {
-                folderTree: currentTree.slice(0, currentTree.lastIndexOf('/'))
+                folderTree: currentTree.slice(0, currentTree.lastIndexOf('/')),
+                pull: name
             }
         })
-
-        window.location.reload()
     }
 
 
     return (
-        <div className="folder-del-popup">
+        <div className="folder-del-popup popup-menu">
 
             <section className="menu">
 
-                <p className="info">Deleting folder</p>
+                <p className="header-info">Deleting folder</p>
                 <p className="name">{name}</p>
 
-                <div className="btns">
-
-                    <Button clickFn={deleteFn} cname="delete">
-                        Delete
-                    </Button>
-
-                    <Button clickFn={cancelMenu} cname="cancel">
-                        Cancel
-                    </Button>
-
-                </div>
+                <ButtonDiv
+                    b1={{ text: 'Delete', cname: 'red', clickFn: deleteFn }}
+                    b2={{ text: 'Cancel', cname: 'blue', clickFn: cancelMenu }}
+                />
 
             </section>
 

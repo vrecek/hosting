@@ -1,15 +1,44 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const Server_1 = __importDefault(require("../Server"));
+const path_1 = __importDefault(require("path"));
 const User_1 = __importDefault(require("../models/User"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const JWTAuth_1 = __importDefault(require("../jwt/JWTAuth"));
+const JWTAuth_1 = __importDefault(require("../middleware/JWTAuth"));
 const findFolder_1 = __importDefault(require("../utils/findFolder"));
 const findUpdateString_1 = __importDefault(require("../utils/findUpdateString"));
+const getFiletype_1 = __importStar(require("../utils/getFiletype"));
+const ffprobeFile_1 = __importDefault(require("../utils/ffprobeFile"));
+const mongoose_1 = __importDefault(require("mongoose"));
+const fsMkdir_1 = __importDefault(require("../utils/fsMkdir"));
+const makeThumbnail_1 = __importDefault(require("../utils/makeThumbnail"));
 const UserRoute = express_1.default.Router();
 UserRoute.get('/auth', JWTAuth_1.default, async (req, res) => {
     try {
@@ -79,6 +108,65 @@ UserRoute.post('/logout', JWTAuth_1.default, (req, res) => {
     req.id = undefined;
     res.status(200).json({ msg: 'Logged out' });
 });
+UserRoute.post('/new-file', JWTAuth_1.default, async (req, res) => {
+    const user_uploads = path_1.default.join(__dirname, '..', '..', 'uploads', `${req.id}`), file_id = new mongoose_1.default.Types.ObjectId().toString();
+    await (0, fsMkdir_1.default)(user_uploads);
+    const fu = new Server_1.default.FileUpload(getFiletype_1.AvailableFileTypes);
+    const up = fu.multerImageUpload('disk', Server_1.default.GiB, 'fileitem', 'single', user_uploads, (file) => `${file_id}${path_1.default.extname(file.originalname)}`);
+    up(req, res, async (err) => {
+        const error = fu.multerImageUploadError(err, res, req);
+        if (error)
+            return error;
+        const { currentTree, filename, isMovie, movieDesc } = req.body, file = req.file;
+        const f_name = `${filename}${path_1.default.extname(file.originalname)}`, f_dest = `${file.destination}/${file.filename}`;
+        let probe, itemObj, varObj = {};
+        try {
+            probe = await (0, ffprobeFile_1.default)(f_dest);
+        }
+        catch {
+            return res.status(400).json({ msg: 'Could not probe the file' });
+        }
+        const comObj = {
+            filepath: f_dest,
+            itemtype: isMovie ? 'movie' : 'file',
+            rand_name: file.filename,
+            tree: currentTree,
+            sizeBytes: probe.size
+        };
+        if (isMovie) {
+            const duration = Math.round(probe.duration), thumb_path = path_1.default.join(user_uploads, 'thumbnails'), thumb_name = `${new mongoose_1.default.Types.ObjectId().toString()}.png`;
+            await (0, fsMkdir_1.default)(thumb_path);
+            await (0, makeThumbnail_1.default)(f_dest, thumb_path, thumb_name, Math.floor(Math.random() * duration));
+            itemObj = {
+                ...comObj,
+                name: f_name.slice(0, f_name.lastIndexOf('.')),
+                description: movieDesc,
+                length: duration,
+                thumbnail: `${thumb_path}/${thumb_name}`
+            };
+            varObj = { movie: {
+                    description: movieDesc,
+                    thumbnail: `${Server_1.default.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`,
+                    length: itemObj.length
+                } };
+        }
+        else {
+            itemObj = {
+                ...comObj,
+                name: f_name,
+                filetype: (0, getFiletype_1.default)(file.mimetype)
+            };
+            varObj = { file: { filetype: (0, getFiletype_1.default)(file.mimetype) } };
+        }
+        console.log(itemObj);
+        res.json({
+            msg: 'Successfully uploaded',
+            _id: file_id,
+            name: itemObj.name,
+            ...varObj
+        });
+    });
+});
 UserRoute.patch('/new-folder', JWTAuth_1.default, async (req, res) => {
     const { foldername, atFolder } = req.body;
     if (Server_1.default.sanitizedString(foldername))
@@ -125,6 +213,8 @@ UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
     const { foldername, atFolder } = req.body;
     if (!foldername || !atFolder)
         return res.status(400).json({ msg: 'Invalid body object' });
+    if (atFolder === 'root')
+        return res.status(400).json({ msg: 'Cannot remove root directory' });
     try {
         const user = await User_1.default.findById(req.id)
             .select('saved')

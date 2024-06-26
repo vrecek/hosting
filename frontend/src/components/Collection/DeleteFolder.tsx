@@ -17,7 +17,7 @@ const DeleteFolder = ({ currentTree, setMenu, name }: IManageDelete) => {
 
             <Icon 
                 icon={<FaFolderMinus />}
-                cname="delete-folder"
+                cname="manage-icon"
                 clickFn={deleteFolderMenu}
             />
 

@@ -6,7 +6,7 @@ import User from "../models/User"
 
 const JWTAuth = async (req: Request, res: Response, next: NextFunction) => {
     const token: string | undefined = req.signedCookies?.token
-
+    
     try
     {
         if (!token) throw 1
@@ -19,7 +19,6 @@ const JWTAuth = async (req: Request, res: Response, next: NextFunction) => {
 
         req.id = auth.id
         next()
-
     }
     catch(e)
     {

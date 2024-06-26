@@ -15,12 +15,11 @@ const NewFolder = ({ currentTree, setMenu }: IManageItems) => {
 
             <Icon 
                 clickFn={addFolderMenu}
-                cname="new-folder"
+                cname="manage-icon"
                 icon={<FaFolderPlus />} 
             />
 
         </section>
-        
     )
 }
 

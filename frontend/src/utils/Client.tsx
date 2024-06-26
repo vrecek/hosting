@@ -89,6 +89,10 @@ namespace FETCH {
         credentials?: any
     }
 
+    export type AbortObj = {
+        signal?: AbortSignal
+    }
+
     export type FetchResult<T> = [
         ErrorReturn | null,
         SuccessReturn<T> | null
@@ -414,6 +418,7 @@ export default class Client {
     {
         private div:             HTMLElement
         private currentAppended: HTMLElement | null
+        private customElement:   HTMLElement | null
 
 
         public constructor(className?: string)
@@ -421,6 +426,7 @@ export default class Client {
             super()
 
             this.currentAppended = null
+            this.customElement   = null
             
             this.div = document.createElement('div')
             this.div.className = className ?? 'loading-default-class'
@@ -437,7 +443,7 @@ export default class Client {
 
 
             const appliedStyles: LOAD.DotStyleType = { 
-                backgroundClr: dotStyles?.backgroundClr ?? 'rgba(30, 30, 30, .9)',
+                backgroundClr: dotStyles?.backgroundClr ?? 'rgba(30, 30, 30, .85)',
                 clr1:          dotStyles?.clr1          ?? 'royalblue',
                 position:      dotStyles?.position      ?? 'fixed',
                 dotSize:       dotStyles?.dotSize       ?? 20
@@ -492,12 +498,25 @@ export default class Client {
         }
 
         /**
+         * @param element custom HTML element
+        */
+        public setCustomElement(element: HTMLElement): this
+        {
+            this.customElement = element
+
+            return this
+        }
+
+        /**
             * @param element An element which loading will be appended to 
             * @param appendFirst Optional - if true, the loading will be appended at the beginning of the container, otherwise as a last element (default)
         */
         public append(element: HTMLElement, appendFirst?: boolean): void
         {
             if (this.currentAppended) return
+
+            if (this.customElement)
+                this.div.appendChild(this.customElement)
 
             this.currentAppended = this.div
 
@@ -551,8 +570,8 @@ export default class Client {
             * @info Use when you want to do a regular request
             * @param url URL to fetch from
             * @param type HTTP method. GET, POST, PATCH, PUT, DELETE
-            * @param options Optional - Object { body?: any, formdataBody?: FormData, abortSignalMs?: number, ...rest}. `rest` properties will be passed as a fetch headers 
-            * @returns [error, data] array. Both can be null. `data` is an object { code: number, defaultMsg: string, json: T }. `error` is object { code: number, defaultMsg: string, serverMsg: string }. Error's `defaultMsg` can be TimeoutError if the server didn't respond after X seconds
+            * @param options Optional options
+            * @returns [error, data] array. Both can be null. `data` is an object { code: number, defaultMsg: string, json: T }. `error` is an object { code: number, defaultMsg: string, serverMsg: string }. Error's `defaultMsg` can be TimeoutError if the server didn't respond after abortSignalMs milliseconds
         */
         public static async http<T = any>(url: string, type: FETCH.RequestType, options?: FETCH.FetchOptions): Promise<FETCH.FetchResult<T>>
         {
@@ -561,17 +580,19 @@ export default class Client {
             if (body && typeof body !== 'object') 
                 throw `'body' is not an object. Got ${typeof body} instead`
 
-                
-            const ABORT_TIME: number = abortSignalMs ?? 15000,
-                  [fetchBody, fetchHeaders] = this.getFetchOptions(body, formdataBody, rest)
+            const [fetchBody, fetchHeaders] = this.getFetchOptions(body, formdataBody, rest),
+                   abortTimeout: number     = abortSignalMs ?? 15000
 
+            const abort: FETCH.AbortObj = {}
+            if (abortSignalMs !== -1)
+                abort.signal = AbortSignal.timeout(abortTimeout)
 
             try {
                 const res: Response = await fetch(url, {
                     method: type,
                     headers: fetchHeaders,
                     credentials,
-                    signal: AbortSignal.timeout(ABORT_TIME),
+                    ...abort,
                     body: fetchBody
                 })
             
@@ -581,7 +602,7 @@ export default class Client {
                 let serverMsg: string = 'Error from the fetch request'
 
                 if (err.name === 'TimeoutError') 
-                    serverMsg = `Request expired after: ${ABORT_TIME / 1000} seconds`
+                    serverMsg = `Request expired after: ${abortTimeout / 1000} seconds`
                 
 
                 return [
@@ -595,7 +616,6 @@ export default class Client {
             }
         }
     }
-
 
 
 
@@ -618,7 +638,6 @@ export default class Client {
     }
 
 
-
     /**
      * @param dateNum Time in ms
      * @returns String representing a date in a "x days ago" format
@@ -636,7 +655,54 @@ export default class Client {
         return `${Math.floor(days)} days ago`
     }
 
+
+    /**
+     * @param seconds seconds 
+     * @returns string in a "xx:xx:xx" or "xx:xx" format
+    */
+    public static secondsToTimeString(seconds: number): string
+    {
+        let isoStr: string = new Date(seconds * 1000).toISOString()
+
+        if (seconds < 3600)
+            isoStr = isoStr.slice(14, 19)
+        else
+            isoStr = isoStr.slice(11, 19)
+
+        return isoStr
+    }
     
+
+    /**
+     * @returns random id as string
+    */
+    public static getRandomID(): string 
+    {
+        return Math.random().toString(16).slice(2)
+    }
+
+    
+    /**
+     * 
+     * @param bytes bytes
+     * @returns readable string, eg 128 Bytes, 395 KiB, 223 MiB, 1.3 GiB
+    */
+    public static bytesToReadable(bytes: number): string
+    {
+        if (bytes <= 1024)
+            return `${bytes} Bytes`
+
+        const str = (v: number, s: string): string => `${(bytes / v).toFixed(2)} ${s}`  
+
+        if (bytes <= 1048576)
+            return str(2 ** 10, 'KiB')
+
+        if (bytes <= 1073741824)
+            return str(2 ** 20, 'MiB')
+        
+        return str(2 ** 30, 'GiB')
+    }
+
 
     /**
      * @param arr Array to get the item from
@@ -650,7 +716,6 @@ export default class Client {
     }
 
 
-
     /**
      * @info Does not mutate the original array
      * @param array Array to shuffle 
@@ -662,7 +727,6 @@ export default class Client {
 
         let currentIndex: number = arrCopy.length,
             randomIndex:  number
-
 
         while (currentIndex !== 0)
         {

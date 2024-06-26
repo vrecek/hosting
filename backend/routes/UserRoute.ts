@@ -1,11 +1,19 @@
 import express, {Router, Request, Response} from 'express'
 import Server, { i } from '../Server'
+import path from 'path'
 import User from '../models/User'
-import UserSchema, { CollectionFolder } from '../interfaces/UserSchema'
+import UserSchema, { CollectionFile, CollectionFolder, CollectionMovie } from '../interfaces/UserSchema'
 import jwt from 'jsonwebtoken'
-import JWTAuth from '../jwt/JWTAuth'
+import JWTAuth from '../middleware/JWTAuth'
 import findFolder from '../utils/findFolder'
 import findUpdateString from '../utils/findUpdateString'
+import getFiletype, { AvailableFileTypes } from '../utils/getFiletype'
+import ffprobe from '../utils/ffprobeFile'
+import ffmpeg from 'fluent-ffmpeg'
+import fs from 'fs/promises'
+import mongoose from 'mongoose'
+import fsMkdir from '../utils/fsMkdir'
+import makeThumbnail from '../utils/makeThumbnail'
 
 
 const UserRoute: Router = express.Router()
@@ -112,6 +120,91 @@ UserRoute.post('/logout', JWTAuth, (req: Request, res: Response) => {
     res.status(200).json({ msg: 'Logged out' })
 })
 
+UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
+    const user_uploads: string = path.join(__dirname, '..', '..', 'uploads', `${req.id}`),
+          file_id:      string = new mongoose.Types.ObjectId().toString()
+
+    await fsMkdir(user_uploads)
+
+    const fu  = new Server.FileUpload(AvailableFileTypes)
+    const up  = fu.multerImageUpload(
+        'disk', 
+        Server.GiB, 
+        'fileitem', 
+        'single', 
+        user_uploads,
+        (file) => `${file_id}${path.extname(file.originalname)}`
+    )
+
+    up(req, res, async (err: any) => {
+        const error = fu.multerImageUploadError(err, res, req)
+        if (error) return error
+
+        const {currentTree, filename, isMovie, movieDesc} = req.body,
+              file: Express.Multer.File = req.file!
+
+        const f_name: string = `${filename}${path.extname(file.originalname)}`,
+              f_dest: string = `${file.destination}/${file.filename}`
+
+        let probe:   ffmpeg.FfprobeFormat,
+            itemObj: CollectionFile | CollectionMovie,
+            varObj = {}
+            
+        try { probe = await ffprobe(f_dest) }
+        catch { return res.status(400).json({ msg: 'Could not probe the file' }) }
+
+        const comObj = {
+            filepath: f_dest,
+            itemtype: isMovie ? 'movie' : 'file',
+            rand_name: file.filename,
+            tree: currentTree,
+            sizeBytes: probe.size
+        }
+
+        if (isMovie)
+        {
+            const duration:   number = Math.round(probe.duration!),
+                  thumb_path: string = path.join(user_uploads, 'thumbnails'),
+                  thumb_name: string = `${new mongoose.Types.ObjectId().toString()}.png`
+
+            await fsMkdir(thumb_path)
+            await makeThumbnail(f_dest, thumb_path, thumb_name, Math.floor(Math.random() * duration))
+
+            itemObj = {
+                ...comObj,
+                name: f_name.slice(0, f_name.lastIndexOf('.')),
+                description: movieDesc,
+                length: duration,
+                thumbnail: `${thumb_path}/${thumb_name}`
+            } as CollectionMovie   
+            
+            varObj = { movie: {
+                description: movieDesc,
+                thumbnail: `${Server.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`, 
+                length: (itemObj as CollectionMovie).length
+            }}
+        }
+        else
+        {
+            itemObj = {
+                ...comObj,
+                name: f_name,
+                filetype: getFiletype(file.mimetype)
+            } as CollectionFile
+
+            varObj = { file: { filetype: getFiletype(file.mimetype) }}
+        }
+
+        console.log(itemObj)
+        res.json({
+            msg: 'Successfully uploaded',
+            _id: file_id,
+            name: itemObj.name,
+            ...varObj
+        })
+    })
+})
+
 UserRoute.patch('/new-folder', JWTAuth, async (req: Request, res: Response) => {
     const {foldername, atFolder} = req.body
 
@@ -143,6 +236,7 @@ UserRoute.patch('/new-folder', JWTAuth, async (req: Request, res: Response) => {
         }
 
         const saveAt: string = findUpdateString(target.tree, user!.saved, 'push')
+        
         await User.updateOne(
             { _id: req.id },
             { $push: {
@@ -179,6 +273,9 @@ UserRoute.delete('/delete-folder', JWTAuth, async (req: Request, res: Response) 
 
     if (!foldername || !atFolder)
         return res.status(400).json({ msg: 'Invalid body object' })
+    
+    if (atFolder === 'root')
+        return res.status(400).json({ msg: 'Cannot remove root directory' })
 
 
     try

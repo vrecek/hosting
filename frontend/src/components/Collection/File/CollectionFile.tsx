@@ -1,15 +1,20 @@
-import { FaImage } from "react-icons/fa"
-import { BiSolidMoviePlay } from "react-icons/bi"
 import Icon from "@/components/Common/Icon"
+import { ICollectionFile } from "@/interfaces/UserInterfaces"
+import iconFromFileType from "@/utils/IconFromFiletype"
 
 
-const CollectionFile = () => {
+const CollectionFile = ({filetype, name, sizeBytes, tree, _id }: ICollectionFile) => {
+    const redirectFn = (): void => {
+        console.log(tree)
+    }
+
+
     return (
-        <article className="collection-file">
+        <article onClick={redirectFn} className="collection-file">
 
-            <Icon icon={<BiSolidMoviePlay />} />
-            <p className="name">arch_wallpaper1.jpg</p>
-            <p className="size">2.36 MB</p>
+            <Icon icon={iconFromFileType(filetype)} />
+            <p className="name">{name}</p>
+            <p className="size">{(sizeBytes / 2 ** 20).toFixed(2)} MB</p>
 
         </article>
     )

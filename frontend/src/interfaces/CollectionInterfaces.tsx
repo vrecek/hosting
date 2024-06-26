@@ -1,10 +1,11 @@
 import { Maybe } from "./CommonInterfaces"
-import { ICollectionFolder, PossibleItems } from "./UserInterfaces"
+import { FileTypes, ICollectionFolder, PossibleItems } from "./UserInterfaces"
 
 
 export interface LocationState
 { 
     folderTree: string
+    pull?:      string
 }
 
 export interface LocationFnObj
@@ -30,6 +31,8 @@ export interface IFolderPopup extends CurrentFolder
 {
     setMenu: React.Dispatch<React.SetStateAction<JSX.Element | null>>
 }
+
+export interface IFilePopup extends IFolderPopup {}
 
 export interface CurrentFolder
 {
@@ -61,4 +64,63 @@ export interface ICollectionContext
 export interface IManageDelete extends IManageItems
 {
     name: string
+}
+
+export interface IB
+{
+    text:     string
+    cname:    'blue' | 'red'
+    trigger?: boolean
+    clickFn?: (e: React.MouseEvent) => void
+}
+
+export interface IButtonDiv
+{
+    b1: IB
+    b2: IB
+}
+
+export interface IUploadInput
+{
+    setSect: React.Dispatch<React.SetStateAction<Maybe<UploadSectionValue>>>
+}
+
+export interface IFileType
+{
+    value: string
+    label: string
+}
+
+export interface UploadSectionValue
+{
+    filename: string
+    filetype: string
+    filesize: number
+    movie?:   boolean
+}
+
+export interface FileAddData
+{
+    msg:  string
+    _id:  string
+    name: string
+
+    file?: {
+        filetype: FileTypes
+    }
+
+    movie?: {
+        description: string,
+        thumbnail:   string
+        length:      number,
+    }
+}
+
+export interface MovieAddData 
+{
+    thumbnail: string
+    length:    number
+    size:      number
+    _id:       string
+    title:     string
 }

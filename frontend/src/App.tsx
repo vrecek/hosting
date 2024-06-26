@@ -13,8 +13,7 @@ import { AppInit } from './interfaces/LayoutInterfaces'
 import defaultLoad from './utils/DefaultLoad'
 
 
-const UserContext = React.createContext<Maybe<UserType>>(null)
-
+const UserContext    = React.createContext<Maybe<UserType>>(null)
 
 function App() {
     const [user, setUser] = React.useState<AppInit>({ loaded: false, user: null })
@@ -24,7 +23,7 @@ function App() {
             const load = defaultLoad(document.body)
 
             const [_, data] = await Client.Fetches.http<UserType>(
-                import.meta.env.VITE_USER_AUTH,'GET', 
+                import.meta.env.VITE_USER_AUTH, 'GET', 
                 { credentials: 'include'}
             )
 

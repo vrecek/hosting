@@ -114,10 +114,6 @@ main.collection {
                 background: rgba(30, 30, 30, .5);
             }
         }
-        
-        article.collection-file {
-            width: 20%;
-        }
     }
 
     section.top {
@@ -127,8 +123,13 @@ main.collection {
         section.manage-options {
             display: flex;
 
-            div.folder-add-popup,
-            div.folder-del-popup {
+            p.header-info {
+                font-weight: 900;
+                font-size: 1.5rem;
+                font-family: 'Inter';
+            }
+
+            div.popup-menu {
                 width: 100%;
                 height: 100%;
                 position: fixed;
@@ -143,21 +144,29 @@ main.collection {
                     background: $clr-blackd;
                     padding: 2em;
                     border-radius: .25em;
-                    width: 25%;
+                    width: 35%;
 
                     div.btns {
-                        @include Flex;  
-                        margin-top: 1.25em;
+                        @include Flex(sb);  
+                        margin-top: 2em;
 
                         button {
                             display: block;
-                            margin-right: .5em;
                             @include HoverBG;
                             padding: .5em 1em;
                             border: 0;
                             outline: 0;
                             font-size: .8rem;
+                            width: 47%;
                             color: $clr-whitel;
+
+                            &.red {
+                                background: $clr-red;
+                            }
+
+                            &.blue {
+                                background: $clr-blued;
+                            }
                         }
                     }
                 }
@@ -167,7 +176,7 @@ main.collection {
                 form {
                     p {
                         text-transform: uppercase;
-                        font-size: .9rem;
+                        font-size: .85rem;
                         font-family: 'UbuntuMono';
                         color: $clr-whitedr;
                     }
@@ -183,52 +192,116 @@ main.collection {
                         border: 0;
                         width: 100%;
                     }
-
-                    div button {
-                        &.cancel {
-                            background: $clr-red;
-                        }
-
-                        &.save {
-                            background: $clr-blued;
-                        }
-                    }
                 }
             }
 
             div.folder-del-popup {
-                section.menu {
-                    p {
-                        text-align: center;
+                section.menu p.name {
+                    font-size: 1.1rem;
+                    color: $clr-greylr;
+                    margin: 1em 0 2em 0;
+                    font-family: 'UbuntuMono';
+                    word-wrap: break-word;
+                }
+            }
 
-                        &.info {
-                            font-weight: 800;
-                            font-size: 1.5rem;
+            div.file-add-popup {
+                form {
+                    div.upload-load {
+                        @include Flex(c, c);
+                        flex-direction: column;
+
+                        p {
+                            text-transform: uppercase;
+                            font-size: 1.1rem;
+                            font-weight: 900;
+                            margin-top: 1em;
                             font-family: 'Inter';
                         }
+                    }
 
-                        &.name {
-                            font-size: .9rem;
-                            color: $clr-greylr;
-                            margin: 1em 0 2em 0;
-                            font-family: 'UbuntuMono';
+                    p.tree-info {
+                        font-size: .75rem;
+                        color: $clr-greylr;
+                    }
 
+                    div.input-div {
+                        margin-bottom: 1em;
+
+                        input:not(.file-label) {
+                            width: 100%;
+                            outline: 0;
+                            border: 0;
+                            background: $clr-blackl;
+                            color: $clr-whitel;
+                            padding: .5em;
+                            font-size: .85rem;
+                        }
+
+                        &.movie-mark {
+                            @include Flex(fs, c);
+
+                            label, input {
+                                cursor: pointer;
+                            }
+
+                            label {
+                                padding-right: .5em;
+                            }
+
+                            input {
+                                @include FullSize(20px);
+                            }
                         }
                     }
-                    div button {
-                        &.delete {
-                            background: $clr-red;
+
+                    label {
+                        text-transform: uppercase;
+                        font-size: .8rem;
+                        color: $clr-greyd;
+                    }
+
+                    section.uploaded-section {
+                        margin-top: 2em;
+
+                        div.file-type {
+                            margin-bottom: 1em;
+
+                            p {
+                                font-size: .85rem;
+                                color: $clr-whitel;
+                            }
+                        }
+                    }
+
+                    section.file-upload {
+                        margin-top: 1.75em;
+
+                        input[type='file'] {
+                            display: none;
                         }
 
-                        &.cancel {
+                        label {
+                            @include Flex(none, c);
                             background: $clr-blued;
+                            font-size: .9rem;
+                            padding: .5em 1em;
+                            border-radius: 1em;
+                            @include HoverBG;
+                            width: max-content;
+                            color: $clr-whitel;
+                            text-transform: none;
+
+                            span {
+                                @include FullSize(30px);
+                                margin-right: .5em;
+                            }
                         }
                     }
                 }
             }
 
-            span.new-folder,
-            span.delete-folder {
+            span.manage-icon {
                 border-radius: .5em;
                 @include HoverBG;
                 @include FullSize(50px);
@@ -241,16 +314,16 @@ main.collection {
                 }
             }
 
-            section.delete-folder {
-                span.delete-folder {
-                    background: $clr-red;
-                }
+            section.delete-folder span {
+                background: $clr-red;
             }
 
-            section.new-folder {
-                span.new-folder {
-                    background: $clr-blued;
-                }
+            section.new-folder span {
+                background: $clr-blued;
+            }
+
+            section.new-file span {
+                background: $clr-greend;
             }
         }
 

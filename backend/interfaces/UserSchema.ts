@@ -10,11 +10,12 @@ export default interface UserSchema
 
 export interface ItemType
 {
-    itemtype: 'folder' | 'file' | 'movie'
-    tree:      string
+    itemtype: ItemTypes
+    tree:     string
+    name:     string
 }
 
-export type CollectionMovie = Omit<CollectionFile,'filetype'> & 
+export interface CollectionMovie extends Omit<CollectionFile, 'filetype'>
 {
     thumbnail:   string
     length:      number
@@ -23,17 +24,19 @@ export type CollectionMovie = Omit<CollectionFile,'filetype'> &
 
 export interface CollectionFile extends ItemType
 {       
-    filetype: 'picture' | 'video' | 'music' | 'txt' | 'code' | 'other'
-    sizeKB:   number
-    name:     string
-    path:     string
+    filetype:  FileTypes
+    sizeBytes: number
+    filepath:  string
+    rand_name: string
 }
 
 export interface CollectionFolder extends ItemType
 {
     items: PossibleItem[]
-    name:   string
 }
+
+export type FileTypes = 'picture' | 'video' | 'music' | 'txt' | 'code' | 'other'
+export type ItemTypes = 'folder' | 'file' | 'movie'
 
 export type PossibleItem = CollectionFile|CollectionMovie|CollectionFolder
 

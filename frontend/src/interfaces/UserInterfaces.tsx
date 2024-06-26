@@ -9,11 +9,13 @@ export default interface UserType
 
 export interface ItemType
 {
-    itemtype: 'folder' | 'file' | 'movie'
-    tree:      string
+    itemtype: ItemTypes
+    tree:     string
+    _id:      string
+    name:     string
 }
 
-export type ICollectionMovie = Omit<ICollectionFile,'filetype'> & 
+export interface ICollectionMovie extends Omit<ICollectionFile, 'filetype'>
 {
     thumbnail:   string
     length:      number
@@ -22,16 +24,16 @@ export type ICollectionMovie = Omit<ICollectionFile,'filetype'> &
 
 export interface ICollectionFile extends ItemType
 {       
-    filetype: 'picture' | 'video' | 'music' | 'txt' | 'code' | 'other'
-    sizeKB:   number
-    name:     string
-    path:     string
+    filetype:  FileTypes
+    sizeBytes: number
 }
 
-export type PossibleItems = (ICollectionFile|ICollectionMovie|ICollectionFolder)
-
-export interface ICollectionFolder extends ItemType
+export interface ICollectionFolder extends Omit<ItemType, '_id'>
 {
     items: PossibleItems[]
-    name:  string
 }
+
+export type FileTypes = 'picture' | 'video' | 'music' | 'txt' | 'code' | 'other'
+export type ItemTypes = 'folder' | 'file' | 'movie'
+
+export type PossibleItems = (ICollectionFile|ICollectionMovie|ICollectionFolder)

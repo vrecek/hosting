@@ -1,12 +1,12 @@
 import { ICollectionContext, IFolderPopup } from "@/interfaces/CollectionInterfaces"
-import Button from "../Common/Button"
 import Client from "@/utils/Client"
 import { CollectionItemsContext } from "./Collection"
 import React from "react"
 import { Maybe } from "@/interfaces/CommonInterfaces"
 import { ICollectionFolder } from "@/interfaces/UserInterfaces"
 import defaultLoad from "@/utils/DefaultLoad"
-import defaultResult from "@/utils/DefaultResult"
+import ButtonDiv from "./ButtonDiv"
+import defaultFixedResult from "@/utils/DefaultResult"
 
 
 const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
@@ -34,7 +34,7 @@ const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
 
         if (err)
         {
-            defaultResult(err.serverMsg)
+            defaultFixedResult(err.serverMsg)
             return
         }
         
@@ -54,24 +54,17 @@ const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
 
 
     return (
-        <div className="folder-add-popup">
+        <div className="folder-add-popup popup-menu">
 
             <form onSubmit={save}>
 
                 <p>Folder name</p>    
                 <input type='text' />
 
-                <div className="btns">
-
-                    <Button triggerForm cname="save">
-                        Confirm
-                    </Button>
-
-                    <Button clickFn={cancelMenu} cname="cancel">
-                        Cancel
-                    </Button>
-
-                </div>
+                <ButtonDiv
+                    b1={{ text: 'Confirm', cname: 'blue', trigger: true }}
+                    b2={{ text: 'Cancel', cname: 'red', clickFn: cancelMenu }}
+                />
 
             </form>   
 

@@ -32,6 +32,11 @@ const path_1 = __importDefault(require("path"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const UserRoute_1 = __importDefault(require("./routes/UserRoute"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const JWTAuth_1 = __importDefault(require("./middleware/JWTAuth"));
+const StaticAuth_1 = __importDefault(require("./middleware/StaticAuth"));
+const ffmpeg_static_1 = __importDefault(require("ffmpeg-static"));
+const fluent_ffmpeg_1 = __importDefault(require("fluent-ffmpeg"));
+fluent_ffmpeg_1.default.setFfmpegPath(ffmpeg_static_1.default);
 dotenv.config({ path: path_1.default.join(__dirname, '../', '.env') });
 (async () => {
     console.log('Connecting...');
@@ -39,6 +44,7 @@ dotenv.config({ path: path_1.default.join(__dirname, '../', '.env') });
     server.use(express_1.default.json());
     server.use(express_1.default.urlencoded({ extended: false }));
     server.use((0, cookie_parser_1.default)(process.env.COOKIEKEY));
+    server.use('/files', JWTAuth_1.default, StaticAuth_1.default, express_1.default.static(path_1.default.join(__dirname, '..', 'uploads')));
     server.use('/filenode/api/user', UserRoute_1.default);
     try {
         await mongoose_1.default.connect(MONGO, { serverSelectionTimeoutMS: 10000 });

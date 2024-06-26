@@ -17,9 +17,10 @@ export interface IImage
 
 export interface IInput
 {
-    type:      'text' | 'password'
+    type:      'text' | 'password' | 'checkbox'
     label:     string
     cname?:    string
+    defVal?:   string
     addEle?:   JSX.Element
     changeFn?: (e: React.ChangeEvent) => void
 }
