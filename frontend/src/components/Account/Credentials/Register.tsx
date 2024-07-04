@@ -29,9 +29,21 @@ const Register = () => {
                     captcha: ca
                 }
             },
-            () => n('/account/signin')
-        )
+            (form: HTMLFormElement) => {
+                const btns: Element[] = [...form.parentElement!.children[0].children] 
 
+                if (btns[1].tagName === 'SPAN')
+                    btns.splice(1, 1)
+
+                for (const x of btns)
+                    x.className = ''
+
+                btns[0].className = 'active'
+
+                n('/account/signin')
+            }
+        )
+        
         cref!.current.reset()
     }
 

@@ -17,17 +17,15 @@ export interface ItemType
 
 export interface CollectionMovie extends Omit<CollectionFile, 'filetype'>
 {
-    thumbnail:   string
     length:      number
     description: string
+    thumbnail:   string
 }
 
 export interface CollectionFile extends ItemType
 {       
     filetype:  FileTypes
     sizeBytes: number
-    filepath:  string
-    rand_name: string
 }
 
 export interface CollectionFolder extends ItemType

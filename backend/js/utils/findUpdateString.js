@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const _nextFolder = (trees, item, arr) => {
-    for (const [i, x] of Object.entries(item.items.filter(y => y.itemtype === 'folder'))) {
-        if (trees.some(y => y === x.tree)) {
+    for (const [i, x] of Object.entries(item?.items ?? [])) {
+        if (trees.some(y => y === x.tree && x.itemtype === 'folder')) {
             arr.push(`.${i}.items`);
             if (arr.length === trees.length)
                 return;

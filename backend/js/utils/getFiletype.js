@@ -5,6 +5,7 @@ const getFiletype = (fileext) => {
     switch (fileext) {
         case 'image/png':
         case 'image/jpg':
+        case 'image/jpeg':
         case 'image/gif':
             return 'picture';
         case 'video/mp4':
@@ -21,7 +22,7 @@ const getFiletype = (fileext) => {
     }
 };
 exports.AvailableFileTypes = [
-    'image/png', 'image/jpg', 'image/gif',
+    'image/png', 'image/jpg', 'image/jpeg', 'image/gif',
     'video/mp4',
     'audio/mpeg',
     'text/plain',

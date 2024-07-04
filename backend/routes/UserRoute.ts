@@ -10,10 +10,12 @@ import findUpdateString from '../utils/findUpdateString'
 import getFiletype, { AvailableFileTypes } from '../utils/getFiletype'
 import ffprobe from '../utils/ffprobeFile'
 import ffmpeg from 'fluent-ffmpeg'
-import fs from 'fs/promises'
 import mongoose from 'mongoose'
 import fsMkdir from '../utils/fsMkdir'
 import makeThumbnail from '../utils/makeThumbnail'
+import fs from 'fs'
+import File from '../models/File'
+import updateFolder from '../utils/updateFolder'
 
 
 const UserRoute: Router = express.Router()
@@ -25,6 +27,10 @@ UserRoute.get('/auth', JWTAuth, async (req: Request, res: Response) => {
         const user = await User.findById(req.id)
                                .select('-password')
                                .lean()
+
+        if (user)
+            updateFolder(user.saved, Server.getProtocolHost(req), req.id!)
+
 
         res.status(200).json(user)
     }
@@ -61,16 +67,24 @@ UserRoute.post('/register', async (req: Request, res: Response) => {
         if (doesMail)
             return res.status(400).json({ msg: 'Mail already exists'})
     
-    
+        
+        const userID: string = new mongoose.Types.ObjectId().toString()
+
         const newUser = new User({
+            _id: userID,
             username,
             mail,
             password: Server.hash(process.env.HASHKEY!, password)
         })
-    
-        await newUser.save()
+        const newFile = new File({ ownerID: userID })
+
+        await Promise.all([
+            newUser.save(),
+            newFile.save()
+        ])
 
         res.status(201).json({ msg: 'Successfully created' })
+
     }
     catch (err: any)
     {
@@ -104,13 +118,14 @@ UserRoute.post('/signin', async (req: Request, res: Response) => {
             httpOnly: true,
             maxAge: expire
         })
+
+        res.status(200).json({ msg: "Successfully logged in "})
+
     }
     catch
     {
         return res.status(500).json({ msg: 'Could not log in'})
     }
-
-    res.status(200).json({ msg: "Successfully logged in "})
 })
 
 UserRoute.post('/logout', JWTAuth, (req: Request, res: Response) => {
@@ -140,68 +155,117 @@ UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
         const error = fu.multerImageUploadError(err, res, req)
         if (error) return error
 
+
         const {currentTree, filename, isMovie, movieDesc} = req.body,
               file: Express.Multer.File = req.file!
 
-        const f_name: string = `${filename}${path.extname(file.originalname)}`,
-              f_dest: string = `${file.destination}/${file.filename}`
+        if (!currentTree || !filename)
+            return res.status(400).json({ msg: 'Invalid body object' })
 
-        let probe:   ffmpeg.FfprobeFormat,
-            itemObj: CollectionFile | CollectionMovie,
-            varObj = {}
-            
-        try { probe = await ffprobe(f_dest) }
-        catch { return res.status(400).json({ msg: 'Could not probe the file' }) }
-
-        const comObj = {
-            filepath: f_dest,
-            itemtype: isMovie ? 'movie' : 'file',
-            rand_name: file.filename,
-            tree: currentTree,
-            sizeBytes: probe.size
-        }
-
-        if (isMovie)
+        try
         {
-            const duration:   number = Math.round(probe.duration!),
-                  thumb_path: string = path.join(user_uploads, 'thumbnails'),
-                  thumb_name: string = `${new mongoose.Types.ObjectId().toString()}.png`
+            const user = await User.findOne({ _id: req.id })
+                                   .select('saved')
+                                   .lean()
 
-            await fsMkdir(thumb_path)
-            await makeThumbnail(f_dest, thumb_path, thumb_name, Math.floor(Math.random() * duration))
+            if (Server.sanitizedString(filename))
+                return res.status(400).json({ msg: 'Invalid file name' })
 
-            itemObj = {
-                ...comObj,
-                name: f_name.slice(0, f_name.lastIndexOf('.')),
-                description: movieDesc,
-                length: duration,
-                thumbnail: `${thumb_path}/${thumb_name}`
-            } as CollectionMovie   
-            
-            varObj = { movie: {
-                description: movieDesc,
-                thumbnail: `${Server.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`, 
-                length: (itemObj as CollectionMovie).length
-            }}
+            if (!findFolder(currentTree, user!.saved))
+                return res.status(400).json({ msg: 'Folder does not exist' })
+
+
+            const f_name: string = `${filename}${path.extname(file.originalname)}`,
+                  f_dest: string = `${file.destination}/${file.filename}`
+
+            let probe:      ffmpeg.FfprobeFormat,
+                itemObj:    CollectionFile | Omit<CollectionMovie, 'thumbnail'>,
+                thumb_name: i.Maybe<string> = undefined,
+                varObj:     any = {}
+
+            try { probe = await ffprobe(f_dest) }
+            catch { return res.status(400).json({ msg: 'Could not probe the file' }) }
+
+
+            const objectID: string = new mongoose.Types.ObjectId().toString()
+
+            const comObj = {
+                _id: objectID,
+                itemtype: isMovie ? 'movie' : 'file',
+                tree: currentTree,
+                sizeBytes: probe.size
+            }
+
+            if (isMovie)
+            {
+                const duration:   number = Math.round(probe.duration!),
+                      thumb_path: string = path.join(user_uploads, 'thumbnails')
+
+                thumb_name = `${new mongoose.Types.ObjectId().toString()}.png`
+
+                await Promise.all([
+                    fsMkdir(thumb_path),
+                    makeThumbnail(f_dest, thumb_path, thumb_name, Math.floor(Math.random() * duration))
+                ])
+
+                itemObj = {
+                    ...comObj,
+                    name: f_name.slice(0, f_name.lastIndexOf('.')),
+                    description: movieDesc ?? '',
+                    length: duration,
+                    thumbnail: thumb_name
+                } as Omit<CollectionMovie, 'thumbnail'> 
+
+                varObj = { movie: {
+                    description: movieDesc,
+                    thumbnail: `${Server.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`, 
+                    length: (itemObj as CollectionMovie).length
+                }}
+            }
+            else
+            {
+                itemObj = {
+                    ...comObj,
+                    name: f_name,
+                    filetype: getFiletype(file.mimetype)
+                } as CollectionFile
+
+                varObj = { file: { filetype: getFiletype(file.mimetype) }}
+            }
+
+            const saveAt: string = findUpdateString(currentTree, user!.saved, 'push')
+                        
+            await Promise.all([
+                User.updateOne(
+                    { _id: req.id },
+                    { $push: {
+                        [saveAt]: itemObj
+                    }}
+                ),
+                File.updateOne(
+                    { ownerID: req.id },
+                    { $push: {
+                        items: {
+                            _id: objectID,
+                            secretName: file.filename
+                        }
+                    }}
+                )
+            ])
+
+
+            res.json({
+                msg: 'Successfully uploaded',
+                _id: file_id,
+                name: itemObj.name,
+                ...varObj
+            })
+
         }
-        else
+        catch
         {
-            itemObj = {
-                ...comObj,
-                name: f_name,
-                filetype: getFiletype(file.mimetype)
-            } as CollectionFile
-
-            varObj = { file: { filetype: getFiletype(file.mimetype) }}
+            res.status(500).json({ msg: 'Could not insert the file' })
         }
-
-        console.log(itemObj)
-        res.json({
-            msg: 'Successfully uploaded',
-            _id: file_id,
-            name: itemObj.name,
-            ...varObj
-        })
     })
 })
 
@@ -255,7 +319,13 @@ UserRoute.patch('/new-folder', JWTAuth, async (req: Request, res: Response) => {
 UserRoute.delete('/delete-user', JWTAuth, async (req: Request, res: Response) => {
     try
     {
-        await User.deleteOne({ _id: req.id })
+        await Promise.all([
+            File.deleteOne({ ownerID: req.id }),
+            User.deleteOne({ _id: req.id })
+        ])
+        
+        const userpath: string = path.join(__dirname, '..', '..', 'uploads', req.id!)
+        fs.rmSync(userpath, { recursive: true })
 
         res.clearCookie('token')
         req.id = undefined
@@ -268,6 +338,7 @@ UserRoute.delete('/delete-user', JWTAuth, async (req: Request, res: Response) =>
     }
 })
 
+// delete files (File)
 UserRoute.delete('/delete-folder', JWTAuth, async (req: Request, res: Response) => {
     const { foldername, atFolder } = req.body
 
@@ -290,7 +361,8 @@ UserRoute.delete('/delete-folder', JWTAuth, async (req: Request, res: Response) 
             return res.status(400).json({ msg: 'Folder does not exist' })
 
 
-        let delAt: string = findUpdateString(target.tree, user!.saved, 'pull')
+        const delAt: string = findUpdateString(target.tree, user!.saved, 'pull')
+        
         await User.updateOne(
             { _id: req.id },
             { $pull: {

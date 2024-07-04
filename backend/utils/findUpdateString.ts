@@ -2,9 +2,9 @@ import { CollectionFolder } from "../interfaces/UserSchema"
 
 
 const _nextFolder = (trees: string[], item: CollectionFolder, arr: string[]): void => {
-    for (const [i, x] of Object.entries(item.items.filter(y => y.itemtype === 'folder')))
+    for (const [i, x] of Object.entries(item?.items ?? []))
     {
-        if (trees.some(y => y === x.tree))
+        if (trees.some(y => y === x.tree && x.itemtype === 'folder'))
         {
             arr.push(`.${i}.items`)
 

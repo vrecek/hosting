@@ -6,6 +6,7 @@ const getFiletype = (fileext: string): FileTypes  => {
     {
         case 'image/png':
         case 'image/jpg':
+        case 'image/jpeg':
         case 'image/gif':
             return 'picture'
 
@@ -29,11 +30,12 @@ const getFiletype = (fileext: string): FileTypes  => {
 
 
 export const AvailableFileTypes: string[] = [
-    'image/png', 'image/jpg', 'image/gif',
+    'image/png', 'image/jpg', 'image/jpeg', 'image/gif',
     'video/mp4',
     'audio/mpeg',
     'text/plain',
     'application/x-javascript', 'application/x-shellscript', 'text/x-python'
 ]
+
 
 export default getFiletype

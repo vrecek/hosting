@@ -39,12 +39,17 @@ const ffprobeFile_1 = __importDefault(require("../utils/ffprobeFile"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const fsMkdir_1 = __importDefault(require("../utils/fsMkdir"));
 const makeThumbnail_1 = __importDefault(require("../utils/makeThumbnail"));
+const fs_1 = __importDefault(require("fs"));
+const File_1 = __importDefault(require("../models/File"));
+const updateFolder_1 = __importDefault(require("../utils/updateFolder"));
 const UserRoute = express_1.default.Router();
 UserRoute.get('/auth', JWTAuth_1.default, async (req, res) => {
     try {
         const user = await User_1.default.findById(req.id)
             .select('-password')
             .lean();
+        if (user)
+            (0, updateFolder_1.default)(user.saved, Server_1.default.getProtocolHost(req), req.id);
         res.status(200).json(user);
     }
     catch {
@@ -69,12 +74,18 @@ UserRoute.post('/register', async (req, res) => {
             return res.status(400).json({ msg: 'Username already exists' });
         if (doesMail)
             return res.status(400).json({ msg: 'Mail already exists' });
+        const userID = new mongoose_1.default.Types.ObjectId().toString();
         const newUser = new User_1.default({
+            _id: userID,
             username,
             mail,
             password: Server_1.default.hash(process.env.HASHKEY, password)
         });
-        await newUser.save();
+        const newFile = new File_1.default({ ownerID: userID });
+        await Promise.all([
+            newUser.save(),
+            newFile.save()
+        ]);
         res.status(201).json({ msg: 'Successfully created' });
     }
     catch (err) {
@@ -97,11 +108,11 @@ UserRoute.post('/signin', async (req, res) => {
             httpOnly: true,
             maxAge: expire
         });
+        res.status(200).json({ msg: "Successfully logged in " });
     }
     catch {
         return res.status(500).json({ msg: 'Could not log in' });
     }
-    res.status(200).json({ msg: "Successfully logged in " });
 });
 UserRoute.post('/logout', JWTAuth_1.default, (req, res) => {
     res.clearCookie('token');
@@ -118,53 +129,81 @@ UserRoute.post('/new-file', JWTAuth_1.default, async (req, res) => {
         if (error)
             return error;
         const { currentTree, filename, isMovie, movieDesc } = req.body, file = req.file;
-        const f_name = `${filename}${path_1.default.extname(file.originalname)}`, f_dest = `${file.destination}/${file.filename}`;
-        let probe, itemObj, varObj = {};
+        if (!currentTree || !filename)
+            return res.status(400).json({ msg: 'Invalid body object' });
         try {
-            probe = await (0, ffprobeFile_1.default)(f_dest);
+            const user = await User_1.default.findOne({ _id: req.id })
+                .select('saved')
+                .lean();
+            if (Server_1.default.sanitizedString(filename))
+                return res.status(400).json({ msg: 'Invalid file name' });
+            if (!(0, findFolder_1.default)(currentTree, user.saved))
+                return res.status(400).json({ msg: 'Folder does not exist' });
+            const f_name = `${filename}${path_1.default.extname(file.originalname)}`, f_dest = `${file.destination}/${file.filename}`;
+            let probe, itemObj, thumb_name = undefined, varObj = {};
+            try {
+                probe = await (0, ffprobeFile_1.default)(f_dest);
+            }
+            catch {
+                return res.status(400).json({ msg: 'Could not probe the file' });
+            }
+            const objectID = new mongoose_1.default.Types.ObjectId().toString();
+            const comObj = {
+                _id: objectID,
+                itemtype: isMovie ? 'movie' : 'file',
+                tree: currentTree,
+                sizeBytes: probe.size
+            };
+            if (isMovie) {
+                const duration = Math.round(probe.duration), thumb_path = path_1.default.join(user_uploads, 'thumbnails');
+                thumb_name = `${new mongoose_1.default.Types.ObjectId().toString()}.png`;
+                await Promise.all([
+                    (0, fsMkdir_1.default)(thumb_path),
+                    (0, makeThumbnail_1.default)(f_dest, thumb_path, thumb_name, Math.floor(Math.random() * duration))
+                ]);
+                itemObj = {
+                    ...comObj,
+                    name: f_name.slice(0, f_name.lastIndexOf('.')),
+                    description: movieDesc ?? '',
+                    length: duration,
+                    thumbnail: thumb_name
+                };
+                varObj = { movie: {
+                        description: movieDesc,
+                        thumbnail: `${Server_1.default.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`,
+                        length: itemObj.length
+                    } };
+            }
+            else {
+                itemObj = {
+                    ...comObj,
+                    name: f_name,
+                    filetype: (0, getFiletype_1.default)(file.mimetype)
+                };
+                varObj = { file: { filetype: (0, getFiletype_1.default)(file.mimetype) } };
+            }
+            const saveAt = (0, findUpdateString_1.default)(currentTree, user.saved, 'push');
+            await Promise.all([
+                User_1.default.updateOne({ _id: req.id }, { $push: {
+                        [saveAt]: itemObj
+                    } }),
+                File_1.default.updateOne({ ownerID: req.id }, { $push: {
+                        items: {
+                            _id: objectID,
+                            secretName: file.filename
+                        }
+                    } })
+            ]);
+            res.json({
+                msg: 'Successfully uploaded',
+                _id: file_id,
+                name: itemObj.name,
+                ...varObj
+            });
         }
         catch {
-            return res.status(400).json({ msg: 'Could not probe the file' });
+            res.status(500).json({ msg: 'Could not insert the file' });
         }
-        const comObj = {
-            filepath: f_dest,
-            itemtype: isMovie ? 'movie' : 'file',
-            rand_name: file.filename,
-            tree: currentTree,
-            sizeBytes: probe.size
-        };
-        if (isMovie) {
-            const duration = Math.round(probe.duration), thumb_path = path_1.default.join(user_uploads, 'thumbnails'), thumb_name = `${new mongoose_1.default.Types.ObjectId().toString()}.png`;
-            await (0, fsMkdir_1.default)(thumb_path);
-            await (0, makeThumbnail_1.default)(f_dest, thumb_path, thumb_name, Math.floor(Math.random() * duration));
-            itemObj = {
-                ...comObj,
-                name: f_name.slice(0, f_name.lastIndexOf('.')),
-                description: movieDesc,
-                length: duration,
-                thumbnail: `${thumb_path}/${thumb_name}`
-            };
-            varObj = { movie: {
-                    description: movieDesc,
-                    thumbnail: `${Server_1.default.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`,
-                    length: itemObj.length
-                } };
-        }
-        else {
-            itemObj = {
-                ...comObj,
-                name: f_name,
-                filetype: (0, getFiletype_1.default)(file.mimetype)
-            };
-            varObj = { file: { filetype: (0, getFiletype_1.default)(file.mimetype) } };
-        }
-        console.log(itemObj);
-        res.json({
-            msg: 'Successfully uploaded',
-            _id: file_id,
-            name: itemObj.name,
-            ...varObj
-        });
     });
 });
 UserRoute.patch('/new-folder', JWTAuth_1.default, async (req, res) => {
@@ -200,7 +239,12 @@ UserRoute.patch('/new-folder', JWTAuth_1.default, async (req, res) => {
 });
 UserRoute.delete('/delete-user', JWTAuth_1.default, async (req, res) => {
     try {
-        await User_1.default.deleteOne({ _id: req.id });
+        await Promise.all([
+            File_1.default.deleteOne({ ownerID: req.id }),
+            User_1.default.deleteOne({ _id: req.id })
+        ]);
+        const userpath = path_1.default.join(__dirname, '..', '..', 'uploads', req.id);
+        fs_1.default.rmSync(userpath, { recursive: true });
         res.clearCookie('token');
         req.id = undefined;
         res.status(200).json({ msg: 'Deleted account' });
@@ -209,6 +253,7 @@ UserRoute.delete('/delete-user', JWTAuth_1.default, async (req, res) => {
         res.status(500).json({ msg: 'Could not delete the account' });
     }
 });
+// delete files (File)
 UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
     const { foldername, atFolder } = req.body;
     if (!foldername || !atFolder)
@@ -222,7 +267,7 @@ UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
         const target = (0, findFolder_1.default)(atFolder, user.saved);
         if (!target)
             return res.status(400).json({ msg: 'Folder does not exist' });
-        let delAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'pull');
+        const delAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'pull');
         await User_1.default.updateOne({ _id: req.id }, { $pull: {
                 [delAt]: { name: foldername }
             } });

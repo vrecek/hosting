@@ -8,7 +8,7 @@ const credentialsAction = async (
     box:       RB.ResultBox, 
     succMsg:   string,
     bodyFn:    CredentialsBody,
-    successFn: () => void
+    successFn: (form: HTMLFormElement) => void
 ): Promise<void> => 
 {
     e.preventDefault()
@@ -40,7 +40,7 @@ const credentialsAction = async (
     if (!err)
     {
         ele.map(x => x.value = '')
-        setTimeout(() => successFn(), 1500)
+        setTimeout(() => successFn(t), 1500)
     }
 }
 

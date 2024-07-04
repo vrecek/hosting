@@ -10,7 +10,7 @@ const _nextFolder = (searchTreeFor, item) => {
     }
 };
 const findFolder = (searchTreeFor, savedObj) => {
-    for (const folder of savedObj) {
+    for (const folder of savedObj ?? []) {
         const found = _nextFolder(searchTreeFor, folder);
         if (found)
             return found;

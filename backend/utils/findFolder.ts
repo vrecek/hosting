@@ -15,7 +15,7 @@ const _nextFolder = (searchTreeFor: string, item: CollectionFolder): i.Maybe<Col
 
 
 const findFolder = (searchTreeFor: string, savedObj: CollectionFolder[]): i.Maybe<CollectionFolder> => {
-    for (const folder of savedObj)
+    for (const folder of savedObj ?? [])
     {
         const found: i.Maybe<CollectionFolder> = _nextFolder(searchTreeFor, folder)
         if (found) return found

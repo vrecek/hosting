@@ -21,8 +21,7 @@ const userSchema = new mongoose.Schema<UserSchema>({
                 items:    Array,
     
                 filetype:    String,
-                sizeKB:      Number,
-                path:        String,
+                sizeBytes:   Number,
                 thumbnail:   String,
                 length:      Number,
                 description: String

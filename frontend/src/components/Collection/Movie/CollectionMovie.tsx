@@ -4,7 +4,7 @@ import { MovieAddData } from '@/interfaces/CollectionInterfaces'
 import Client from '@/utils/Client'
 
 
-const CollectionMovie = ({ thumbnail, length, size, title, _id }: MovieAddData) => {
+const CollectionMovie = ({ thumbnail, length, size, title }: MovieAddData) => {
     return (
         <article className="collection-movie">
 
