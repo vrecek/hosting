@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const crypto_1 = __importDefault(require("crypto"));
 const multer_1 = __importDefault(require("multer"));
+const promises_1 = __importDefault(require("fs/promises"));
+const path_1 = __importDefault(require("path"));
 class Server {
     //|***********|//
     //| CONSTANTS |//
@@ -162,6 +164,29 @@ class Server {
     static verifyHash(key32bytesHex, encryptObj, text) {
         const decipher = crypto_1.default.createDecipheriv('aes-256-cbc', crypto_1.default.pbkdf2Sync(Buffer.from(key32bytesHex, 'hex'), Buffer.from(encryptObj.salt, 'hex'), 10000, 32, 'sha256'), Buffer.from(encryptObj.iv, 'hex'));
         return text === decipher.update(encryptObj.hash, 'hex', 'utf-8') + decipher.final('utf-8');
+    }
+    //|*******|//
+    //| FILES |//
+    //|*******|//
+    static async mkdir(paths) {
+        const pathname = path_1.default.join(...paths);
+        try {
+            await promises_1.default.access(path_1.default.join(pathname));
+        }
+        catch {
+            await promises_1.default.mkdir(path_1.default.join(pathname));
+        }
+    }
+    // recursive
+    static async rm(paths, throwErr) {
+        try {
+            await promises_1.default.unlink(path_1.default.join(...paths));
+        }
+        catch (e) {
+            if (throwErr)
+                throw new Error(e);
+            console.log(`Could not delete file: ${paths.join('/')}\nMessage: ${e}`);
+        }
     }
     //|*******|//
     //| OTHER |//

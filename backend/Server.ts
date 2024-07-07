@@ -1,5 +1,7 @@
 import crypto from 'crypto'
 import multer, { FileFilterCallback } from 'multer'
+import fs from 'fs/promises'
+import path from 'path'
 import { Request, Response as EResponse } from 'express'
 
 
@@ -39,6 +41,7 @@ class Server
             this.multerFileSize = 0
             this.multerMethod   = null
         }
+
 
         private returnMulterStorage(type: MulterSaveType, uploadPath?: string, filenameFn?: FileNameFnArgument): multer.StorageEngine
         {
@@ -261,6 +264,34 @@ class Server
         )
 
         return text === decipher.update(encryptObj.hash, 'hex', 'utf-8') + decipher.final('utf-8')
+    }
+
+    //|*******|//
+    //| FILES |//
+    //|*******|//
+
+    public static async mkdir(pathsToJoin: string[]): Promise<void>
+    {
+        const pathname: string = path.join(...pathsToJoin)
+
+        try { await fs.access(path.join(pathname)) }
+        catch { await fs.mkdir(path.join(pathname)) }
+    }
+
+    // recursive
+    public static async rm(paths: string[], throwErr?: boolean): Promise<void>
+    {
+        try 
+        { 
+            await fs.unlink(path.join(...paths))
+        }
+        catch (e: any)
+        {
+            if (throwErr)
+                throw new Error(e)
+
+            console.log(`Could not delete file: ${paths.join('/')}\nMessage: ${e}`) 
+        }
     }
 
     //|*******|//

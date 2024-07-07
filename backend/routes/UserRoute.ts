@@ -2,7 +2,7 @@ import express, {Router, Request, Response} from 'express'
 import Server, { i } from '../Server'
 import path from 'path'
 import User from '../models/User'
-import UserSchema, { CollectionFile, CollectionFolder, CollectionMovie } from '../interfaces/UserSchema'
+import UserSchema, { CollectionFile, CollectionFolder, CollectionMovie, PossibleItem } from '../interfaces/UserSchema'
 import jwt from 'jsonwebtoken'
 import JWTAuth from '../middleware/JWTAuth'
 import findFolder from '../utils/findFolder'
@@ -15,7 +15,8 @@ import fsMkdir from '../utils/fsMkdir'
 import makeThumbnail from '../utils/makeThumbnail'
 import fs from 'fs'
 import File from '../models/File'
-import updateFolder from '../utils/updateFolder'
+import loopFolders from '../utils/loopFolders'
+import { FileItems } from '../interfaces/FileSchema'
 
 
 const UserRoute: Router = express.Router()
@@ -29,9 +30,18 @@ UserRoute.get('/auth', JWTAuth, async (req: Request, res: Response) => {
                                .lean()
 
         if (user)
-            updateFolder(user.saved, Server.getProtocolHost(req), req.id!)
+        {
+            const protohost: string = Server.getProtocolHost(req)
 
-
+            loopFolders(user.saved, (x: PossibleItem) => {
+                if (x.itemtype === 'movie')
+                {
+                    const thumbnail: string = (x as CollectionMovie).thumbnail;
+                    (x as CollectionMovie).thumbnail = `${protohost}/files/${req.id}/thumbnails/${thumbnail}`
+                }
+            })
+        }
+            
         res.status(200).json(user)
     }
     catch
@@ -135,6 +145,7 @@ UserRoute.post('/logout', JWTAuth, (req: Request, res: Response) => {
     res.status(200).json({ msg: 'Logged out' })
 })
 
+// delete file if error
 UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
     const user_uploads: string = path.join(__dirname, '..', '..', 'uploads', `${req.id}`),
           file_id:      string = new mongoose.Types.ObjectId().toString()
@@ -204,7 +215,7 @@ UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
                 thumb_name = `${new mongoose.Types.ObjectId().toString()}.png`
 
                 await Promise.all([
-                    fsMkdir(thumb_path),
+                    Server.mkdir([thumb_path]),
                     makeThumbnail(f_dest, thumb_path, thumb_name, Math.floor(Math.random() * duration))
                 ])
 
@@ -247,14 +258,14 @@ UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
                     { $push: {
                         items: {
                             _id: objectID,
-                            secretName: file.filename
+                            secretName: file.filename,
+                            thumbnail: thumb_name
                         }
                     }}
                 )
             ])
 
-
-            res.json({
+            res.status(201).json({
                 msg: 'Successfully uploaded',
                 _id: file_id,
                 name: itemObj.name,
@@ -292,7 +303,7 @@ UserRoute.patch('/new-folder', JWTAuth, async (req: Request, res: Response) => {
         if (target.items.some(x => x.name === foldername))
             return res.status(400).json({ msg: 'Folder already exists' })
 
-        const newFolder: CollectionFolder = {
+        const newFolder: Omit<CollectionFolder, '_id'> = {
             items: [],
             itemtype: 'folder',
             name: foldername,
@@ -338,7 +349,6 @@ UserRoute.delete('/delete-user', JWTAuth, async (req: Request, res: Response) =>
     }
 })
 
-// delete files (File)
 UserRoute.delete('/delete-folder', JWTAuth, async (req: Request, res: Response) => {
     const { foldername, atFolder } = req.body
 
@@ -355,25 +365,69 @@ UserRoute.delete('/delete-folder', JWTAuth, async (req: Request, res: Response) 
                                .select('saved')
                                .lean()
 
-        const target: i.Maybe<CollectionFolder> = findFolder(atFolder, user!.saved)
+        const target: i.Maybe<CollectionFolder> = findFolder(atFolder, user!.saved),
+              IDs:    string[] = []
 
         if (!target)
             return res.status(400).json({ msg: 'Folder does not exist' })
 
 
-        const delAt: string = findUpdateString(target.tree, user!.saved, 'pull')
-        
-        await User.updateOne(
-            { _id: req.id },
-            { $pull: {
-                [delAt]: {name: foldername}
-            }}
-        )
+        loopFolders([target], (x: PossibleItem) => {
+            if (x.itemtype === 'file' || x.itemtype === 'movie')
+                IDs.push(x._id)
+        })
 
-        res.status(201).json({ msg: 'Successfully deleted the folder' })
+        const files = (await File.aggregate([
+            { $match: { ownerID: req.id }},
+            {
+                $project: {
+                    secretName: 1,
+                    ownerID: 1,
+
+                    items: {
+                        $filter: {
+                            input: '$items',
+                            as: 'item',
+                            cond: { $in: ['$$item._id', IDs.map(x => new mongoose.Types.ObjectId(x))] }
+                          }
+                    }
+                }
+            }
+        ]))[0].items as FileItems[]
+
+
+        const userPath: string = path.join(__dirname, '..', '..', 'uploads', req.id!),
+              delAt:    string = findUpdateString(target.tree, user!.saved, 'pull') 
+
+        for (const file of files)
+        {
+            await Server.rm([userPath, file.secretName])
+            
+            if (file.thumbnail)
+                await Server.rm([userPath, 'thumbnails', file.thumbnail])
+        }
+
+        await Promise.all([
+            User.updateOne(
+                { _id: req.id },
+                { $pull: {
+                    [delAt]: { name: foldername }
+                }}
+            ),
+
+            File.updateOne(
+                { ownerID: req.id },
+                { $pull: {
+                    items: { _id: { $in: IDs } }           
+                }}
+            )
+        ])
+        
+        res.status(200).json({ msg: 'Successfully deleted the folder' })
     }
-    catch
+    catch (e)
     {
+        console.log(e)
         res.status(500).json({ msg: 'Could not create a directory' })
     }
 })

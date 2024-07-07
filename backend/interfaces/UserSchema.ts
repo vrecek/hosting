@@ -10,6 +10,7 @@ export default interface UserSchema
 
 export interface ItemType
 {
+    _id:      string
     itemtype: ItemTypes
     tree:     string
     name:     string

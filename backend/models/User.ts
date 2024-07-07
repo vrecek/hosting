@@ -26,11 +26,11 @@ const userSchema = new mongoose.Schema<UserSchema>({
                 length:      Number,
                 description: String
             }],
-    
+
             name:     String,
             itemtype: String,
             tree:     String
-        }],
+        }] as any,
 
         default: [{ name: 'root', itemtype: 'folder', tree: 'root', items: [] }]
     }

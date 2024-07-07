@@ -41,15 +41,22 @@ const fsMkdir_1 = __importDefault(require("../utils/fsMkdir"));
 const makeThumbnail_1 = __importDefault(require("../utils/makeThumbnail"));
 const fs_1 = __importDefault(require("fs"));
 const File_1 = __importDefault(require("../models/File"));
-const updateFolder_1 = __importDefault(require("../utils/updateFolder"));
+const loopFolders_1 = __importDefault(require("../utils/loopFolders"));
 const UserRoute = express_1.default.Router();
 UserRoute.get('/auth', JWTAuth_1.default, async (req, res) => {
     try {
         const user = await User_1.default.findById(req.id)
             .select('-password')
             .lean();
-        if (user)
-            (0, updateFolder_1.default)(user.saved, Server_1.default.getProtocolHost(req), req.id);
+        if (user) {
+            const protohost = Server_1.default.getProtocolHost(req);
+            (0, loopFolders_1.default)(user.saved, (x) => {
+                if (x.itemtype === 'movie') {
+                    const thumbnail = x.thumbnail;
+                    x.thumbnail = `${protohost}/files/${req.id}/thumbnails/${thumbnail}`;
+                }
+            });
+        }
         res.status(200).json(user);
     }
     catch {
@@ -119,6 +126,7 @@ UserRoute.post('/logout', JWTAuth_1.default, (req, res) => {
     req.id = undefined;
     res.status(200).json({ msg: 'Logged out' });
 });
+// delete file if error
 UserRoute.post('/new-file', JWTAuth_1.default, async (req, res) => {
     const user_uploads = path_1.default.join(__dirname, '..', '..', 'uploads', `${req.id}`), file_id = new mongoose_1.default.Types.ObjectId().toString();
     await (0, fsMkdir_1.default)(user_uploads);
@@ -158,7 +166,7 @@ UserRoute.post('/new-file', JWTAuth_1.default, async (req, res) => {
                 const duration = Math.round(probe.duration), thumb_path = path_1.default.join(user_uploads, 'thumbnails');
                 thumb_name = `${new mongoose_1.default.Types.ObjectId().toString()}.png`;
                 await Promise.all([
-                    (0, fsMkdir_1.default)(thumb_path),
+                    Server_1.default.mkdir([thumb_path]),
                     (0, makeThumbnail_1.default)(f_dest, thumb_path, thumb_name, Math.floor(Math.random() * duration))
                 ]);
                 itemObj = {
@@ -190,11 +198,12 @@ UserRoute.post('/new-file', JWTAuth_1.default, async (req, res) => {
                 File_1.default.updateOne({ ownerID: req.id }, { $push: {
                         items: {
                             _id: objectID,
-                            secretName: file.filename
+                            secretName: file.filename,
+                            thumbnail: thumb_name
                         }
                     } })
             ]);
-            res.json({
+            res.status(201).json({
                 msg: 'Successfully uploaded',
                 _id: file_id,
                 name: itemObj.name,
@@ -253,7 +262,6 @@ UserRoute.delete('/delete-user', JWTAuth_1.default, async (req, res) => {
         res.status(500).json({ msg: 'Could not delete the account' });
     }
 });
-// delete files (File)
 UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
     const { foldername, atFolder } = req.body;
     if (!foldername || !atFolder)
@@ -264,16 +272,47 @@ UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
         const user = await User_1.default.findById(req.id)
             .select('saved')
             .lean();
-        const target = (0, findFolder_1.default)(atFolder, user.saved);
+        const target = (0, findFolder_1.default)(atFolder, user.saved), IDs = [];
         if (!target)
             return res.status(400).json({ msg: 'Folder does not exist' });
-        const delAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'pull');
-        await User_1.default.updateOne({ _id: req.id }, { $pull: {
-                [delAt]: { name: foldername }
-            } });
-        res.status(201).json({ msg: 'Successfully deleted the folder' });
+        (0, loopFolders_1.default)([target], (x) => {
+            if (x.itemtype === 'file' || x.itemtype === 'movie')
+                IDs.push(x._id);
+        });
+        const files = (await File_1.default.aggregate([
+            { $match: { ownerID: req.id } },
+            {
+                $project: {
+                    secretName: 1,
+                    ownerID: 1,
+                    items: {
+                        $filter: {
+                            input: '$items',
+                            as: 'item',
+                            cond: { $in: ['$$item._id', IDs.map(x => new mongoose_1.default.Types.ObjectId(x))] }
+                        }
+                    }
+                }
+            }
+        ]))[0].items;
+        const userPath = path_1.default.join(__dirname, '..', '..', 'uploads', req.id), delAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'pull');
+        for (const file of files) {
+            await Server_1.default.rm([userPath, file.secretName]);
+            if (file.thumbnail)
+                await Server_1.default.rm([userPath, 'thumbnails', file.thumbnail]);
+        }
+        await Promise.all([
+            User_1.default.updateOne({ _id: req.id }, { $pull: {
+                    [delAt]: { name: foldername }
+                } }),
+            File_1.default.updateOne({ ownerID: req.id }, { $pull: {
+                    items: { _id: { $in: IDs } }
+                } })
+        ]);
+        res.status(200).json({ msg: 'Successfully deleted the folder' });
     }
-    catch {
+    catch (e) {
+        console.log(e);
         res.status(500).json({ msg: 'Could not create a directory' });
     }
 });

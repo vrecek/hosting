@@ -7,4 +7,6 @@ export default interface FileSchema
 export interface FileItems
 {
     secretName: string
+    _id:        string
+    thumbnail:  string | undefined
 }
