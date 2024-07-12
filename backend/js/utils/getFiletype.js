@@ -9,6 +9,7 @@ const getFiletype = (fileext) => {
         case 'image/gif':
             return 'picture';
         case 'video/mp4':
+        case 'video/x-matroska':
             return 'video';
         case 'audio/mpeg':
             return 'music';
@@ -23,7 +24,7 @@ const getFiletype = (fileext) => {
 };
 exports.AvailableFileTypes = [
     'image/png', 'image/jpg', 'image/jpeg', 'image/gif',
-    'video/mp4',
+    'video/mp4', 'video/x-matroska',
     'audio/mpeg',
     'text/plain',
     'application/x-javascript', 'application/x-shellscript', 'text/x-python'

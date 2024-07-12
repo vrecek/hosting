@@ -20,10 +20,11 @@ const userSchema = new mongoose_1.default.Schema({
                         tree: String,
                         items: Array,
                         filetype: String,
+                        created: Number,
                         sizeBytes: Number,
                         thumbnail: String,
                         length: Number,
-                        description: String
+                        note: String
                     }],
                 name: String,
                 itemtype: String,

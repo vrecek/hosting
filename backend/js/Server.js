@@ -171,19 +171,28 @@ class Server {
     static async mkdir(paths) {
         const pathname = path_1.default.join(...paths);
         try {
-            await promises_1.default.access(path_1.default.join(pathname));
+            await promises_1.default.access(pathname);
         }
         catch {
-            await promises_1.default.mkdir(path_1.default.join(pathname));
+            await promises_1.default.mkdir(pathname);
         }
     }
-    // recursive
-    static async rm(paths, throwErr) {
+    static async rm(paths, opts = defIRemoveOpts) {
         try {
-            await promises_1.default.unlink(path_1.default.join(...paths));
+            if (opts.fileRx) {
+                const fileRx = new RegExp(paths.at(-1)), basename = path_1.default.join(...paths.slice(0, -1)), lsdir = await promises_1.default.readdir(basename);
+                for (const file of lsdir)
+                    if (fileRx.test(file)) {
+                        await promises_1.default.rm(`${basename}/${file}`);
+                        if (!opts.recursive)
+                            return;
+                    }
+                return;
+            }
+            await promises_1.default.rm(path_1.default.join(...paths), { recursive: opts.recursive });
         }
         catch (e) {
-            if (throwErr)
+            if (opts.throwErr)
                 throw new Error(e);
             console.log(`Could not delete file: ${paths.join('/')}\nMessage: ${e}`);
         }
@@ -209,4 +218,5 @@ class Server {
         return `${req.protocol}://${req.get('Host')}`;
     }
 }
+const defIRemoveOpts = { recursive: false, throwErr: false, fileRx: false };
 exports.default = Server;

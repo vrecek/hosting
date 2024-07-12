@@ -36,6 +36,7 @@ const JWTAuth_1 = __importDefault(require("./middleware/JWTAuth"));
 const StaticAuth_1 = __importDefault(require("./middleware/StaticAuth"));
 const ffmpeg_static_1 = __importDefault(require("ffmpeg-static"));
 const fluent_ffmpeg_1 = __importDefault(require("fluent-ffmpeg"));
+const ItemRoute_1 = __importDefault(require("./routes/ItemRoute"));
 fluent_ffmpeg_1.default.setFfmpegPath(ffmpeg_static_1.default);
 dotenv.config({ path: path_1.default.join(__dirname, '../', '.env') });
 (async () => {
@@ -46,6 +47,7 @@ dotenv.config({ path: path_1.default.join(__dirname, '../', '.env') });
     server.use((0, cookie_parser_1.default)(process.env.COOKIEKEY));
     server.use('/files', JWTAuth_1.default, StaticAuth_1.default, express_1.default.static(path_1.default.join(__dirname, '..', 'uploads')));
     server.use('/filenode/api/user', UserRoute_1.default);
+    server.use('/filenode/api/item', ItemRoute_1.default);
     try {
         await mongoose_1.default.connect(MONGO, { serverSelectionTimeoutMS: 10000 });
         server.listen(PORT, () => console.log(`Server started at port ${PORT}`));

@@ -19,17 +19,19 @@ export interface ICollectionMovie extends Omit<ICollectionFile, 'filetype'>
 {
     thumbnail:   string
     length:      number
-    description: string
 }
 
 export interface ICollectionFile extends ItemType
 {       
     filetype:  FileTypes
     sizeBytes: number
+    note:      string
+    created:   number
 }
 
 export interface ICollectionFolder extends Omit<ItemType, '_id'>
 {
+    _id?:  string
     items: PossibleItems[]
 }
 

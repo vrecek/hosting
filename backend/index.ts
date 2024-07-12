@@ -8,6 +8,7 @@ import JWTAuth from './middleware/JWTAuth'
 import StaticAuth from './middleware/StaticAuth'
 import ffmpegPath from 'ffmpeg-static'
 import ffmpeg from 'fluent-ffmpeg'
+import ItemRoute from './routes/ItemRoute'
 
 
 
@@ -29,6 +30,7 @@ dotenv.config({ path: path.join(__dirname, '../', '.env') });
     server.use('/files', JWTAuth, StaticAuth, express.static(path.join(__dirname, '..', 'uploads')))
 
     server.use('/filenode/api/user', UserRoute)
+    server.use('/filenode/api/item', ItemRoute)
     
     try
     {

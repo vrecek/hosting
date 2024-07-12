@@ -1,12 +1,18 @@
 import Image from '@/components/Common/Image'
-import MovieIcons from './MovieIcons'
-import { MovieAddData } from '@/interfaces/CollectionInterfaces'
+import { ICollectionMovieElement } from '@/interfaces/CollectionInterfaces'
 import Client from '@/utils/Client'
+import { useNavigate } from 'react-router-dom'
 
 
-const CollectionMovie = ({ thumbnail, length, size, title }: MovieAddData) => {
+const CollectionMovie = ({ thumbnail, length, size, title, _id }: ICollectionMovieElement) => {
+    const n = useNavigate()
+    const redirectFn = (): void => n('/item', {
+        state: { id: _id }
+    })
+    
+
     return (
-        <article className="collection-movie">
+        <article onClick={redirectFn} className="collection-movie">
 
             <Image source={thumbnail} altTxt='thumbnail' />
 
@@ -17,13 +23,7 @@ const CollectionMovie = ({ thumbnail, length, size, title }: MovieAddData) => {
 
             </div>
 
-            <div className="title-icons">
-
-                <MovieIcons />
-
-                <p className="title">{title}</p>
-
-            </div>
+            <p className="title">{title}</p>
 
         </article>
     )

@@ -191,7 +191,7 @@ export default class Client {
 
             const WHITE_COLOR: string = 'rgb(250, 250, 250)'
             const {pos, bottom, left, right, top, width, padding, translate} = this.positionStyles
-            
+            console.log(pos)
             Object.assign(div.style, {
                 background: this.typeStyles.background,
                 display: 'flex',

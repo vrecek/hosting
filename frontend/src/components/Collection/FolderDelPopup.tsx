@@ -7,7 +7,7 @@ import ButtonDiv from "./ButtonDiv"
 import defaultFixedResult from "@/utils/DefaultResult"
 
 
-const FolderDelPopup = ({ currentTree, setMenu, name }: IManageDelete) => {
+const FolderDelPopup = ({ currentTree, setMenu, name, id }: IManageDelete) => {
     const n = useNavigate()
     const cancelMenu = (): void => setMenu(null)
 
@@ -34,11 +34,11 @@ const FolderDelPopup = ({ currentTree, setMenu, name }: IManageDelete) => {
         }
 
         cancelMenu()
-
+        
         n('/collection', {
             state: {
                 folderTree: currentTree.slice(0, currentTree.lastIndexOf('/')),
-                pull: name
+                pull: id
             }
         })
     }

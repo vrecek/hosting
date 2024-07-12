@@ -36,12 +36,12 @@ const findFolder_1 = __importDefault(require("../utils/findFolder"));
 const findUpdateString_1 = __importDefault(require("../utils/findUpdateString"));
 const getFiletype_1 = __importStar(require("../utils/getFiletype"));
 const ffprobeFile_1 = __importDefault(require("../utils/ffprobeFile"));
+const promises_1 = __importDefault(require("fs/promises"));
 const mongoose_1 = __importDefault(require("mongoose"));
-const fsMkdir_1 = __importDefault(require("../utils/fsMkdir"));
 const makeThumbnail_1 = __importDefault(require("../utils/makeThumbnail"));
-const fs_1 = __importDefault(require("fs"));
 const File_1 = __importDefault(require("../models/File"));
 const loopFolders_1 = __importDefault(require("../utils/loopFolders"));
+const removeAndResponse_1 = __importDefault(require("../utils/removeAndResponse"));
 const UserRoute = express_1.default.Router();
 UserRoute.get('/auth', JWTAuth_1.default, async (req, res) => {
     try {
@@ -126,71 +126,75 @@ UserRoute.post('/logout', JWTAuth_1.default, (req, res) => {
     req.id = undefined;
     res.status(200).json({ msg: 'Logged out' });
 });
-// delete file if error
 UserRoute.post('/new-file', JWTAuth_1.default, async (req, res) => {
     const user_uploads = path_1.default.join(__dirname, '..', '..', 'uploads', `${req.id}`), file_id = new mongoose_1.default.Types.ObjectId().toString();
-    await (0, fsMkdir_1.default)(user_uploads);
+    await Server_1.default.mkdir([user_uploads]);
     const fu = new Server_1.default.FileUpload(getFiletype_1.AvailableFileTypes);
-    const up = fu.multerImageUpload('disk', Server_1.default.GiB, 'fileitem', 'single', user_uploads, (file) => `${file_id}${path_1.default.extname(file.originalname)}`);
+    const up = fu.multerImageUpload('disk', Server_1.default.GiB * 2, 'fileitem', 'single', user_uploads, (file) => `${file_id}${path_1.default.extname(file.originalname)}`);
     up(req, res, async (err) => {
         const error = fu.multerImageUploadError(err, res, req);
         if (error)
             return error;
-        const { currentTree, filename, isMovie, movieDesc } = req.body, file = req.file;
+        const { currentTree, filename, note, isMovie } = req.body, file = req.file, f_name = `${filename}${path_1.default.extname(file.originalname)}`, f_dest = `${file.destination}/${file.filename}`;
+        let thumb_file_loc;
         if (!currentTree || !filename)
-            return res.status(400).json({ msg: 'Invalid body object' });
+            return await (0, removeAndResponse_1.default)(res, f_dest, 'Invalid body object');
         try {
             const user = await User_1.default.findOne({ _id: req.id })
                 .select('saved')
                 .lean();
             if (Server_1.default.sanitizedString(filename))
-                return res.status(400).json({ msg: 'Invalid file name' });
-            if (!(0, findFolder_1.default)(currentTree, user.saved))
-                return res.status(400).json({ msg: 'Folder does not exist' });
-            const f_name = `${filename}${path_1.default.extname(file.originalname)}`, f_dest = `${file.destination}/${file.filename}`;
-            let probe, itemObj, thumb_name = undefined, varObj = {};
-            try {
-                probe = await (0, ffprobeFile_1.default)(f_dest);
-            }
-            catch {
-                return res.status(400).json({ msg: 'Could not probe the file' });
-            }
-            const objectID = new mongoose_1.default.Types.ObjectId().toString();
+                return await (0, removeAndResponse_1.default)(res, f_dest, 'Invalid file name');
+            if (!(0, findFolder_1.default)(user.saved[0], currentTree))
+                return await (0, removeAndResponse_1.default)(res, f_dest, 'Folder does not exist');
+            let itemObj, thumb_name = undefined, varObj = {};
+            const mongoID = new mongoose_1.default.Types.ObjectId(), objectID = mongoID.toString(), created = Date.now();
             const comObj = {
-                _id: objectID,
+                _id: mongoID,
                 itemtype: isMovie ? 'movie' : 'file',
-                tree: currentTree,
-                sizeBytes: probe.size
+                note,
+                tree: currentTree
             };
             if (isMovie) {
+                let probe;
+                try {
+                    probe = await (0, ffprobeFile_1.default)(f_dest);
+                }
+                catch {
+                    return await (0, removeAndResponse_1.default)(res, f_dest, 'Could not probe the file', 500);
+                }
                 const duration = Math.round(probe.duration), thumb_path = path_1.default.join(user_uploads, 'thumbnails');
                 thumb_name = `${new mongoose_1.default.Types.ObjectId().toString()}.png`;
                 await Promise.all([
                     Server_1.default.mkdir([thumb_path]),
                     (0, makeThumbnail_1.default)(f_dest, thumb_path, thumb_name, Math.floor(Math.random() * duration))
                 ]);
+                thumb_file_loc = `${thumb_path}/${thumb_name}`;
                 itemObj = {
                     ...comObj,
-                    name: f_name.slice(0, f_name.lastIndexOf('.')),
-                    description: movieDesc ?? '',
+                    sizeBytes: probe.size,
                     length: duration,
-                    thumbnail: thumb_name
+                    thumbnail: thumb_name,
+                    created,
+                    name: f_name.slice(0, f_name.lastIndexOf('.'))
                 };
                 varObj = { movie: {
-                        description: movieDesc,
                         thumbnail: `${Server_1.default.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`,
                         length: itemObj.length
                     } };
             }
             else {
+                const filesize = (await promises_1.default.stat(f_dest)).size;
                 itemObj = {
                     ...comObj,
-                    name: f_name,
-                    filetype: (0, getFiletype_1.default)(file.mimetype)
+                    sizeBytes: filesize,
+                    filetype: (0, getFiletype_1.default)(file.mimetype),
+                    created,
+                    name: f_name
                 };
                 varObj = { file: { filetype: (0, getFiletype_1.default)(file.mimetype) } };
             }
-            const saveAt = (0, findUpdateString_1.default)(currentTree, user.saved, 'push');
+            const saveAt = (0, findUpdateString_1.default)(currentTree, user.saved, 'locFolder');
             await Promise.all([
                 User_1.default.updateOne({ _id: req.id }, { $push: {
                         [saveAt]: itemObj
@@ -205,13 +209,15 @@ UserRoute.post('/new-file', JWTAuth_1.default, async (req, res) => {
             ]);
             res.status(201).json({
                 msg: 'Successfully uploaded',
-                _id: file_id,
+                _id: objectID,
                 name: itemObj.name,
                 ...varObj
             });
         }
         catch {
-            res.status(500).json({ msg: 'Could not insert the file' });
+            if (thumb_file_loc)
+                await Server_1.default.rm([thumb_file_loc]);
+            return (0, removeAndResponse_1.default)(res, f_dest, 'Could not insert the file', 500);
         }
     });
 });
@@ -225,7 +231,7 @@ UserRoute.patch('/new-folder', JWTAuth_1.default, async (req, res) => {
         const user = await User_1.default.findById(req.id)
             .select('saved')
             .lean();
-        const target = (0, findFolder_1.default)(atFolder, user.saved);
+        const target = (0, findFolder_1.default)(user.saved[0], atFolder);
         if (!target)
             return res.status(400).json({ msg: 'Folder does not exist' });
         if (target.items.some(x => x.name === foldername))
@@ -236,7 +242,7 @@ UserRoute.patch('/new-folder', JWTAuth_1.default, async (req, res) => {
             name: foldername,
             tree: `${target.tree}/${foldername}`
         };
-        const saveAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'push');
+        const saveAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'locFolder');
         await User_1.default.updateOne({ _id: req.id }, { $push: {
                 [saveAt]: newFolder
             } });
@@ -252,8 +258,7 @@ UserRoute.delete('/delete-user', JWTAuth_1.default, async (req, res) => {
             File_1.default.deleteOne({ ownerID: req.id }),
             User_1.default.deleteOne({ _id: req.id })
         ]);
-        const userpath = path_1.default.join(__dirname, '..', '..', 'uploads', req.id);
-        fs_1.default.rmSync(userpath, { recursive: true });
+        await Server_1.default.rm([__dirname, '..', '..', 'uploads', req.id], { recursive: true, throwErr: true });
         res.clearCookie('token');
         req.id = undefined;
         res.status(200).json({ msg: 'Deleted account' });
@@ -272,7 +277,7 @@ UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
         const user = await User_1.default.findById(req.id)
             .select('saved')
             .lean();
-        const target = (0, findFolder_1.default)(atFolder, user.saved), IDs = [];
+        const target = (0, findFolder_1.default)(user.saved[0], atFolder), IDs = [];
         if (!target)
             return res.status(400).json({ msg: 'Folder does not exist' });
         (0, loopFolders_1.default)([target], (x) => {
@@ -289,13 +294,13 @@ UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
                         $filter: {
                             input: '$items',
                             as: 'item',
-                            cond: { $in: ['$$item._id', IDs.map(x => new mongoose_1.default.Types.ObjectId(x))] }
+                            cond: { $in: ['$$item._id', IDs] }
                         }
                     }
                 }
             }
         ]))[0].items;
-        const userPath = path_1.default.join(__dirname, '..', '..', 'uploads', req.id), delAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'pull');
+        const userPath = path_1.default.join(__dirname, '..', '..', 'uploads', req.id), delAt = (0, findUpdateString_1.default)(target.tree, user.saved, 'pullFolder');
         for (const file of files) {
             await Server_1.default.rm([userPath, file.secretName]);
             if (file.thumbnail)
@@ -311,8 +316,7 @@ UserRoute.delete('/delete-folder', JWTAuth_1.default, async (req, res) => {
         ]);
         res.status(200).json({ msg: 'Successfully deleted the folder' });
     }
-    catch (e) {
-        console.log(e);
+    catch {
         res.status(500).json({ msg: 'Could not create a directory' });
     }
 });

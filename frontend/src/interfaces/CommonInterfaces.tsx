@@ -1,4 +1,5 @@
 import { Aliases } from "@/utils/Client"
+import React from "react"
 
 
 export interface IIcon
@@ -36,3 +37,10 @@ export interface IButton
 export type Set<T> = React.Dispatch<React.SetStateAction<T>>
 
 export type Maybe<T> = Aliases.Maybe<T>
+
+export interface IIconButton
+{
+    cname:   string
+    icon:    JSX.Element
+    clickFn: (e: React.MouseEvent) => void
+}

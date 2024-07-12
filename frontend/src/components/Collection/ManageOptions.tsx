@@ -1,24 +1,30 @@
 import { IManageOptions } from "@/interfaces/CollectionInterfaces"
-import NewFolder from "./NewFolder"
-import DeleteFolder from "./DeleteFolder"
 import React from "react"
-import NewFile from "./NewFile/NewFile"
+import IconButton from "../Common/IconButton"
+import { FaFileMedical, FaFolderMinus, FaFolderPlus } from "react-icons/fa"
+import FileAddPopup from "./NewFile/FileAddPopup"
+import FolderPopup from "./FolderPopup"
+import FolderDelPopup from "./FolderDelPopup"
 
 
-const ManageOptions = ({ currentTree, name }: IManageOptions) => {
+const ManageOptions = ({ currentTree, name, id }: IManageOptions) => {
     const [menu, setMenu] = React.useState<JSX.Element | null>(null)
 
+    const addFileMenu      = (): void => setMenu(<FileAddPopup currentTree={currentTree} setMenu={setMenu} />)
+    const addFolderMenu    = (): void => setMenu(<FolderPopup currentTree={currentTree} setMenu={setMenu} />)
+    const deleteFolderMenu = (): void => setMenu(<FolderDelPopup id={id} name={name} currentTree={currentTree} setMenu={setMenu} />)
+    
 
     return (
         <section className="manage-options">
 
             {menu}
 
-            <NewFile setMenu={setMenu} currentTree={currentTree} />
-            <NewFolder setMenu={setMenu} currentTree={currentTree} />
+            <IconButton clickFn={addFileMenu} cname="new-file" icon={<FaFileMedical />} />
+            <IconButton clickFn={addFolderMenu} cname="new-folder" icon={<FaFolderPlus />} />
             {
                 currentTree !== 'root' &&
-                    <DeleteFolder name={name} setMenu={setMenu} currentTree={currentTree} />
+                    <IconButton clickFn={deleteFolderMenu} cname="delete-folder" icon={<FaFolderMinus />} />
             }
 
         </section>

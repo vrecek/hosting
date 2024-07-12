@@ -21,9 +21,9 @@ const findUpdateString = (tree, savedObj, as) => {
     }
     const finalStr = `saved${indx.join('')}`;
     switch (as) {
-        case 'push':
+        case 'locFolder':
             return finalStr;
-        case 'pull':
+        case 'pullFolder':
             return finalStr.split('.').slice(0, -2).join('.');
         default:
             return '';

@@ -11,9 +11,10 @@ import Client from './utils/Client'
 import { Maybe } from './interfaces/CommonInterfaces'
 import { AppInit } from './interfaces/LayoutInterfaces'
 import defaultLoad from './utils/DefaultLoad'
+import Item from './components/Item/Item'
 
 
-const UserContext    = React.createContext<Maybe<UserType>>(null)
+const UserContext = React.createContext<Maybe<UserType>>(null)
 
 function App() {
     const [user, setUser] = React.useState<AppInit>({ loaded: false, user: null })
@@ -50,6 +51,7 @@ function App() {
 
                         <Route path='/' element={<Home />} />
                         <Route path='/collection' element={<Collection />} />
+                        <Route path='/item' element={<Item />} />
                         <Route path='/account/*' element={<Credentials />} />
                         <Route path='/account' element={<Profile />} />
 

@@ -34,7 +34,7 @@ const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
             .defaultStyleDots({ position: 'absolute' })
             .append(t)
 
-        const [file, filename, asMovie, movieDesc] = ele.map(x => {
+        const [file, filename, note, asMovie] = ele.map(x => {
             switch (x.type)
             {
                 case 'text': return x.value
@@ -43,12 +43,12 @@ const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
                 default: return ''
             }
         }) as [File, string, string, string]
-        
+
         const fd: FormData = new FormData()
         fd.append('fileitem', file)
         fd.append('filename', filename)
+        fd.append('note', note)
         fd.append('isMovie', asMovie ?? '')
-        fd.append('movieDesc', movieDesc ?? '')
         fd.append('currentTree', currentTree)
 
         const [err, data] = await Client.Fetches.http<FileAddData>(import.meta.env.VITE_USER_NEWFILE, 'POST', {
@@ -78,7 +78,6 @@ const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
             if (asMovie)
                 curr!.items.push({
                     ...fileObj,
-                    description: movieDesc,
                     length: json.movie?.length,
                     thumbnail: json.movie?.thumbnail
                 } as ICollectionMovie)
@@ -128,18 +127,14 @@ const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
                     )
                 }
                 {
-                    upSect?.filetype === 'video/mp4' &&
+                    ['video/mp4', 'video/x-matroska'].some(x => x === upSect?.filetype) &&
                         <Input
-                            defVal={upSect.filename}
+                            defVal={upSect!.filename}
                             type="checkbox"
                             label="Mark as movie"
                             cname="movie-mark"
                             changeFn={movieInputFn}
                         />
-                }
-                {
-                    upSect?.movie &&
-                        <Input type='text' label="Description" />
                 }
 
                 <ButtonDiv

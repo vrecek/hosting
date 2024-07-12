@@ -20,11 +20,12 @@ const userSchema = new mongoose.Schema<UserSchema>({
                 tree:     String,
                 items:    Array,
     
-                filetype:    String,
-                sizeBytes:   Number,
-                thumbnail:   String,
-                length:      Number,
-                description: String
+                filetype:  String,
+                created:   Number,
+                sizeBytes: Number,
+                thumbnail: String,
+                length:    Number,
+                note:      String
             }],
 
             name:     String,

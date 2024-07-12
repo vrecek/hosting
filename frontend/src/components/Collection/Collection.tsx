@@ -22,10 +22,9 @@ const Collection = () => {
     const n = useNavigate()
 
     React.useEffect(() => {
-        const stateFolder: string = l.state?.folderTree ?? 'root',
-              statePull:   Maybe<string> = l.state?.pull
-
-        const currentFolder: ICollectionFolder | null = findFolder(stateFolder, user?.saved)
+        const stateFolder:   string = l.state?.folderTree ?? 'root',
+              statePull:     Maybe<string> = l.state?.pull,
+              currentFolder: ICollectionFolder | null = findFolder(stateFolder, user?.saved)
 
         if (!currentFolder)
         {
@@ -34,6 +33,7 @@ const Collection = () => {
         }
 
         const items: ItemsObject = {
+            _id: currentFolder._id,
             itemtype: 'folder',
             name: currentFolder.name,
             tree: currentFolder.tree,
@@ -43,7 +43,7 @@ const Collection = () => {
 
         if (statePull)
         {
-            const i: number = items.items.findIndex(x => x.name === statePull)
+            const i: number = items.items.findIndex(x => x._id === statePull)
 
             i !== -1 && items.items.splice(i, 1)
         }
@@ -62,7 +62,7 @@ const Collection = () => {
                 <section className="top">
 
                     <CollectionHeader prevFolders={items.prevFolders} current={items.name} />
-                    <ManageOptions name={items.name} currentTree={items.tree} />
+                    <ManageOptions id={items._id!} name={items.name} currentTree={items.tree} />
 
                 </section>
 

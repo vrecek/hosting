@@ -1,6 +1,7 @@
 import '@/css/Home.css'
 import Button from '../Common/Button'
 import Image from '../Common/Image'
+import bg from '@/images/homebg.jpg'
 import img from '@/images/home1n.png'
 import { Link } from 'react-router-dom'
 import { Maybe } from '@/interfaces/CommonInterfaces'
@@ -20,7 +21,9 @@ const Home = () => {
     return (
         <main className="homepage">
 
-            <Image source={img} />
+            <Image cname='bg-img' source={bg} />
+
+            <Image cname='left-img' source={img} />
 
             <article>
 

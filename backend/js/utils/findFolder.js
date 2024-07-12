@@ -1,20 +1,13 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const _nextFolder = (searchTreeFor, item) => {
-    if (item.tree === searchTreeFor)
-        return item;
-    for (const x of item.items.filter(y => y.itemtype === 'folder')) {
-        const found = _nextFolder(searchTreeFor, x);
-        if (found)
-            return found;
-    }
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-const findFolder = (searchTreeFor, savedObj) => {
-    for (const folder of savedObj ?? []) {
-        const found = _nextFolder(searchTreeFor, folder);
-        if (found)
-            return found;
-    }
-    return null;
+Object.defineProperty(exports, "__esModule", { value: true });
+const findItem_1 = __importDefault(require("./findItem"));
+const findFolder = (savedObj, searchTreeFor) => {
+    return (0, findItem_1.default)(savedObj, (x) => {
+        return x.itemtype === 'folder' &&
+            x.tree === searchTreeFor;
+    });
 };
 exports.default = findFolder;

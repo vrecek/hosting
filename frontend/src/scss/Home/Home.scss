@@ -5,7 +5,9 @@ main.homepage {
     @include Flex(sa, c);
     height: calc(100vh - $nav-height);
     padding: 2em;
-
+    position: relative;
+    overflow: hidden;
+    
     article {
         width: 40%;
 
@@ -40,8 +42,19 @@ main.homepage {
     }
 
     figure {
-        width: 40%;
-        filter: brightness(80%);
+        &.bg-img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: -1;
+            opacity: .1;
+            width: 100%;
+        }
+
+        &.left-img {
+            width: 40%;
+            filter: brightness(80%);
+        }
 
         img {
             width: 100%;

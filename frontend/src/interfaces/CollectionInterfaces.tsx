@@ -1,5 +1,5 @@
 import { Maybe } from "./CommonInterfaces"
-import { FileTypes, ICollectionFolder, PossibleItems } from "./UserInterfaces"
+import { FileTypes, ICollectionFile, ICollectionFolder, PossibleItems } from "./UserInterfaces"
 
 
 export interface LocationState
@@ -49,6 +49,7 @@ export interface FolderElement
 export interface IManageOptions extends CurrentFolder
 {
     name: string
+    id:   string
 }
 
 export interface IManageItems extends CurrentFolder
@@ -64,6 +65,7 @@ export interface ICollectionContext
 export interface IManageDelete extends IManageItems
 {
     name: string
+    id:   string
 }
 
 export interface IB
@@ -110,13 +112,12 @@ export interface FileAddData
     }
 
     movie?: {
-        description: string,
-        thumbnail:   string
-        length:      number,
+        thumbnail:  string
+        length:     number,
     }
 }
 
-export interface MovieAddData 
+export interface ICollectionMovieElement
 {
     thumbnail: string
     length:    number
@@ -124,3 +125,5 @@ export interface MovieAddData
     _id:       string
     title:     string
 }
+
+export type ICollectionFileElement = Omit<ICollectionFile, 'note' | 'created'>

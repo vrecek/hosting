@@ -270,24 +270,40 @@ class Server
     //| FILES |//
     //|*******|//
 
-    public static async mkdir(pathsToJoin: string[]): Promise<void>
+    public static async mkdir(paths: string[]): Promise<void>
     {
-        const pathname: string = path.join(...pathsToJoin)
+        const pathname: string = path.join(...paths)
 
-        try { await fs.access(path.join(pathname)) }
-        catch { await fs.mkdir(path.join(pathname)) }
+        try { await fs.access(pathname) }
+        catch { await fs.mkdir(pathname) }
     }
 
-    // recursive
-    public static async rm(paths: string[], throwErr?: boolean): Promise<void>
+    public static async rm(paths: string[], opts: IRemoveOpts = defIRemoveOpts): Promise<void>
     {
         try 
         { 
-            await fs.unlink(path.join(...paths))
+            if (opts.fileRx)
+            {
+                const fileRx:   RegExp   = new RegExp(paths.at(-1)!),
+                      basename: string   = path.join(...paths.slice(0, -1)),
+                      lsdir:    string[] = await fs.readdir(basename)
+
+                for (const file of lsdir)
+                    if (fileRx.test(file))
+                    {
+                        await fs.rm(`${basename}/${file}`)
+
+                        if (!opts.recursive) return
+                    }
+
+                return
+            }
+
+            await fs.rm(path.join(...paths), { recursive: opts.recursive })
         }
         catch (e: any)
         {
-            if (throwErr)
+            if (opts.throwErr)
                 throw new Error(e)
 
             console.log(`Could not delete file: ${paths.join('/')}\nMessage: ${e}`) 
@@ -365,6 +381,17 @@ type DestinationCallback = (error: Error | null, destination: string) => void
 type FileNameCallback    = (error: Error | null, filename: string) => void
 type FileNameFnArgument  = (file: Express.Multer.File) => string
 
+//|*******|//
+//| FILES |//
+//|*******|//
+interface IRemoveOpts
+{
+    throwErr?:  boolean
+    recursive?: boolean
+    fileRx?:    boolean
+}
+
+const defIRemoveOpts: IRemoveOpts = {recursive: false, throwErr: false, fileRx: false}
 
 //|*********|//
 //| EXPRESS |//

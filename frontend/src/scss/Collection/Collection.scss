@@ -21,35 +21,17 @@ main.collection {
             flex-direction: column;
             width: 30%;
             aspect-ratio: 1.5;
+            cursor: pointer;
 
-            div.title-icons {
-                @include Flex(sb, fe);
-
-                section.movie-icons {
-                    span {
-                        display: block;
-                        cursor: pointer;
-                        color: $clr-whited;
-                        @include FullSize(30px);
-                        margin-top: .5em;
-                        transition: 250ms;
-                        text-shadow: 0 0 3px $clr-blackd;
-
-                        &:hover {
-                            color: $clr-bluel;
-                        }
-                    }                    
-                }
-
-                p.title {
-                    font-family: 'Inter';
-                    text-align: right;
-                    font-weight: 900;
-                    font-size: 1.75rem;
-                    margin-left: 1.7em;
-                    letter-spacing: -1px;
-                    text-shadow: 0 0 3px $clr-blackd;
-                }
+            p.title {
+                font-family: 'Inter';
+                text-align: right;
+                font-weight: 900;
+                font-size: 1.75rem;
+                margin: .2em;
+                margin-left: 1em;
+                letter-spacing: -1px;
+                text-shadow: 0 0 3px $clr-blackd;
             }
 
             div.time-type {
@@ -301,29 +283,23 @@ main.collection {
                 }
             }
 
-            span.manage-icon {
-                border-radius: .5em;
-                @include HoverBG;
-                @include FullSize(50px);
-                @include Flex(c, c);
-                color: $clr-whitel;
-                margin-left: .5em;
-    
-                svg {
-                    @include FullSize(50%);
+            div.icon-button-div {
+                span {
+                    border-radius: .5em;
+                    @include HoverBG;
+                    @include FullSize(50px);
+                    @include Flex(c, c);
+                    color: $clr-whitel;
+                    margin-left: .5em;
+        
+                    svg {
+                        @include FullSize(50%);
+                    }
                 }
-            }
 
-            section.delete-folder span {
-                background: $clr-red;
-            }
-
-            section.new-folder span {
-                background: $clr-blued;
-            }
-
-            section.new-file span {
-                background: $clr-greend;
+                &.new-file span { background: $clr-greend; }
+                &.new-folder span { background: $clr-blued; }
+                &.delete-folder span { background: $clr-red; }
             }
         }
 

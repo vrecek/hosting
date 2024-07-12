@@ -11,6 +11,7 @@ const UploadedSection = ({ filename, filetype, filesize }: UploadSectionValue) =
             <Input label="File name" type="text" defVal={filename} />
             <FileInfo label="File type" value={filetype} />
             <FileInfo label="Size" value={Client.bytesToReadable(filesize)} />
+            <Input type='text' label="Note" />
 
         </section>
     )

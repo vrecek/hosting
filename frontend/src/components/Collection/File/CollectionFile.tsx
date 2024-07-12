@@ -1,12 +1,15 @@
 import Icon from "@/components/Common/Icon"
-import { ICollectionFile } from "@/interfaces/UserInterfaces"
+import { ICollectionFileElement } from "@/interfaces/CollectionInterfaces"
+import Client from "@/utils/Client"
 import iconFromFileType from "@/utils/IconFromFiletype"
+import { useNavigate } from "react-router-dom"
 
 
-const CollectionFile = ({filetype, name, sizeBytes, tree, _id }: ICollectionFile) => {
-    const redirectFn = (): void => {
-        console.log(tree)
-    }
+const CollectionFile = ({filetype, name, sizeBytes, _id, tree }: ICollectionFileElement) => {
+    const n = useNavigate()
+    const redirectFn = (): void => n('/item', {
+        state: { id: _id, tree }
+    })
 
 
     return (
@@ -14,7 +17,7 @@ const CollectionFile = ({filetype, name, sizeBytes, tree, _id }: ICollectionFile
 
             <Icon icon={iconFromFileType(filetype)} />
             <p className="name">{name}</p>
-            <p className="size">{(sizeBytes / 2 ** 20).toFixed(2)} MB</p>
+            <p className="size">{Client.bytesToReadable(sizeBytes)}</p>
 
         </article>
     )

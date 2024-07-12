@@ -1,4 +1,4 @@
-import { CollectionFolder, CollectionMovie, PossibleItem } from "../interfaces/UserSchema"
+import { CollectionFolder, PossibleItem } from "../interfaces/UserSchema"
 
 
 const loopFolders = (savedObj: CollectionFolder[], fn: (x: PossibleItem) => void): void => {

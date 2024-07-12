@@ -11,6 +11,7 @@ const getFiletype = (fileext: string): FileTypes  => {
             return 'picture'
 
         case 'video/mp4':
+        case 'video/x-matroska':
             return 'video'
 
         case 'audio/mpeg':
@@ -31,7 +32,7 @@ const getFiletype = (fileext: string): FileTypes  => {
 
 export const AvailableFileTypes: string[] = [
     'image/png', 'image/jpg', 'image/jpeg', 'image/gif',
-    'video/mp4',
+    'video/mp4', 'video/x-matroska',
     'audio/mpeg',
     'text/plain',
     'application/x-javascript', 'application/x-shellscript', 'text/x-python'

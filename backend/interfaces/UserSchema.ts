@@ -1,3 +1,5 @@
+import mongoose from "mongoose"
+
 export default interface UserSchema
 {
     _id:      string
@@ -10,7 +12,7 @@ export default interface UserSchema
 
 export interface ItemType
 {
-    _id:      string
+    _id:      mongoose.Types.ObjectId
     itemtype: ItemTypes
     tree:     string
     name:     string
@@ -19,7 +21,6 @@ export interface ItemType
 export interface CollectionMovie extends Omit<CollectionFile, 'filetype'>
 {
     length:      number
-    description: string
     thumbnail:   string
 }
 
@@ -27,6 +28,8 @@ export interface CollectionFile extends ItemType
 {       
     filetype:  FileTypes
     sizeBytes: number
+    note:      string
+    created:   number
 }
 
 export interface CollectionFolder extends ItemType
