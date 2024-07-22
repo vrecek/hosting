@@ -8,6 +8,17 @@ main.collection {
         @include Flex(sb, c);
         flex-wrap: wrap;
 
+        h2 {
+            font-family: 'Inter';
+            font-weight: 900;
+            letter-spacing: -1px;
+            width: 100%;
+            margin-top: 1em;
+            text-align: center;
+            font-size: 2rem;
+            color: $clr-greydr;
+        }
+
         article {
             margin-right: .5em;
             margin-bottom: 3em;
@@ -105,20 +116,32 @@ main.collection {
         section.manage-options {
             display: flex;
 
-            p.header-info {
-                font-weight: 900;
-                font-size: 1.5rem;
-                font-family: 'Inter';
-            }
-
             div.popup-menu {
                 width: 100%;
                 height: 100%;
-                position: fixed;
                 left: 0;
                 top: 0;
                 background: rgba(30, 30, 30, .75);
                 @include Flex(c, c);
+                @include Layer(9, fixed);
+
+                section.popup-title {
+                    @include Flex(none, c);
+                    margin-bottom: 2em;
+
+                    span {
+                        @include FullSize(60px);    
+                    }
+
+                    p {
+                        font-family: 'Inter';
+                        margin-left: .5em;
+                        letter-spacing: -1px;
+                        color: $clr-greyl;
+                        font-size: 1.1rem;
+                        font-weight: 800;
+                    }
+                }
 
                 form,
                 section.menu {
@@ -135,7 +158,7 @@ main.collection {
                         button {
                             display: block;
                             @include HoverBG;
-                            padding: .5em 1em;
+                            padding: 1em;
                             border: 0;
                             outline: 0;
                             font-size: .8rem;
@@ -143,7 +166,7 @@ main.collection {
                             color: $clr-whitel;
 
                             &.red {
-                                background: $clr-red;
+                                background: $clr-redd;
                             }
 
                             &.blue {
@@ -156,7 +179,7 @@ main.collection {
 
             div.folder-add-popup {
                 form {
-                    p {
+                    p.fname {
                         text-transform: uppercase;
                         font-size: .85rem;
                         font-family: 'UbuntuMono';
@@ -178,6 +201,15 @@ main.collection {
             }
 
             div.folder-del-popup {
+                p.warn {
+                    color: $clr-redlr;
+                    text-transform: uppercase;
+                    width: 70%;
+                    font-size: .9rem;
+                    letter-spacing: -1px;
+                    font-weight: bold;
+                }
+
                 section.menu p.name {
                     font-size: 1.1rem;
                     color: $clr-greylr;
@@ -203,8 +235,20 @@ main.collection {
                     }
 
                     p.tree-info {
-                        font-size: .75rem;
-                        color: $clr-greylr;
+                        @include Flex(none, c);
+
+                        &:not(span) {
+                            font-size: .75rem;
+                            color: $clr-greylr;
+                        }
+
+                        span {
+                            text-transform: uppercase;
+                            font-weight: 800;
+                            font-family: 'Inter';
+                            font-size: .85rem;
+                            margin-right: .25em;
+                        }
                     }
 
                     div.input-div {
@@ -299,7 +343,7 @@ main.collection {
 
                 &.new-file span { background: $clr-greend; }
                 &.new-folder span { background: $clr-blued; }
-                &.delete-folder span { background: $clr-red; }
+                &.delete-folder span { background: $clr-redl; }
             }
         }
 

@@ -44,7 +44,7 @@ const Collection = () => {
         if (statePull)
         {
             const i: number = items.items.findIndex(x => x._id === statePull)
-
+            
             i !== -1 && items.items.splice(i, 1)
         }
 
@@ -108,6 +108,11 @@ const Collection = () => {
                                     return <></>
                             }
                         })
+                    }
+
+                    {
+                        !items.items.length
+                            && <h2>Directory is empty</h2>
                     }
 
                 </section>

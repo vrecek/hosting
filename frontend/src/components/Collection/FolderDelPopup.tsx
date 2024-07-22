@@ -5,6 +5,8 @@ import defaultLoad from "@/utils/DefaultLoad"
 import Client from "@/utils/Client"
 import ButtonDiv from "./ButtonDiv"
 import defaultFixedResult from "@/utils/DefaultResult"
+import PopupTitle from "./PopupTitle"
+import { FaFolderPlus } from "react-icons/fa"
 
 
 const FolderDelPopup = ({ currentTree, setMenu, name, id }: IManageDelete) => {
@@ -34,7 +36,7 @@ const FolderDelPopup = ({ currentTree, setMenu, name, id }: IManageDelete) => {
         }
 
         cancelMenu()
-        
+
         n('/collection', {
             state: {
                 folderTree: currentTree.slice(0, currentTree.lastIndexOf('/')),
@@ -49,8 +51,11 @@ const FolderDelPopup = ({ currentTree, setMenu, name, id }: IManageDelete) => {
 
             <section className="menu">
 
-                <p className="header-info">Deleting folder</p>
+                <PopupTitle icon={<FaFolderPlus />} text="Delete the folder" />                
+
                 <p className="name">{name}</p>
+
+                <p className="warn">This will also delete every file inside that folder</p>
 
                 <ButtonDiv
                     b1={{ text: 'Delete', cname: 'red', clickFn: deleteFn }}

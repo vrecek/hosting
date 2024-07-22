@@ -26,8 +26,21 @@
 }
 
 body {
-    
     background: $clr-blackd;
+
+    figure.background-body-image {
+        position: fixed;
+        left: 0;
+        top: 0;
+        @include FullSize;
+        opacity: .1;
+        @include Layer(-1, fixed);
+
+        img {
+            width: 100%;
+        }
+    }
+
     color: $clr-whitel;
     width: 100vw;
     min-height: 100vh;

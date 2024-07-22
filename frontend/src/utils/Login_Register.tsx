@@ -32,9 +32,9 @@ const credentialsAction = async (
     load.remove()
 
     box.setType(err ? 'error' : 'success')
-        .setStyles({ pos: 'absolute', top: '0', left: '0', width: '100%', padding: '1.25em' })
+        .setStyles({ pos: 'absolute', top: '0', left: '0', width: '100%', padding: '1.35em' })
         .append(t, err ? err.serverMsg : succMsg)
-        .fadeAnimation()
+        ?.fadeAnimation()
         .remove(2000)
 
     if (!err)

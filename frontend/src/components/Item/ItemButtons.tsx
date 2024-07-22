@@ -7,14 +7,14 @@ import Client from "@/utils/Client"
 import { Location, useLocation, useNavigate } from "react-router-dom"
 
 
-const ItemButtons = ({ id }: IItemButtons) => {
+const ItemButtons = ({ id, outputname }: IItemButtons) => {
     const l: Location<ItemLocation> = useLocation(),
           n  = useNavigate(),
           rb = new Client.ResultBox('error')
 
     
     const download = (): void => {
-        window.open(`${import.meta.env.VITE_ITEM_DOWNLOAD}/${id}`, '_blank')
+        window.open(`${import.meta.env.VITE_ITEM_DOWNLOAD}/${id}/${outputname}`, '_blank')
     }
 
     const deleteitem = async (e: React.MouseEvent): Promise<void> => {
@@ -33,7 +33,7 @@ const ItemButtons = ({ id }: IItemButtons) => {
         {
             rb.setStyles({ pos: 'fixed', top: '0', left: '50%', translate: '-50% 0', width: '50%' })
               .append(document.body, err.serverMsg, 'resultbox')
-              .fadeAnimation()
+              ?.fadeAnimation()
               .remove(3000)
 
             return

@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken'
 import JWTAuth from '../middleware/JWTAuth'
 import findFolder from '../utils/findFolder'
 import findUpdateString from '../utils/findUpdateString'
-import getFiletype, { AvailableFileTypes } from '../utils/getFiletype'
+import getFiletype from '../utils/getFiletype'
 import ffprobe from '../utils/ffprobeFile'
 import ffmpeg from 'fluent-ffmpeg'
 import fs from 'fs/promises'
@@ -151,7 +151,7 @@ UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
 
     await Server.mkdir([user_uploads])
 
-    const fu  = new Server.FileUpload(AvailableFileTypes)
+    const fu  = new Server.FileUpload(null, ['.exe'])
     const up  = fu.multerImageUpload(
         'disk', 
         Server.GiB * 2, 
@@ -168,11 +168,15 @@ UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
 
         const {currentTree, filename, note, isMovie} = req.body,
               file:   Express.Multer.File = req.file!,
-              f_name: string = `${filename}${path.extname(file.originalname)}`,
-              f_dest: string = `${file.destination}/${file.filename}`
+              ext:    string = path.extname(file.originalname),
+              f_name: string = `${filename}${ext}`
 
-        let thumb_file_loc: i.Maybe<string>
+        let thumb_file_loc: i.Maybe<string>,
+            f_dest:         string = `${file.destination}/${file.filename}`
+
         
+        if (isMovie && ext !== '.mp4' && ext !== '.webm')
+            return await rmAndRes(res, f_dest, 'Movie must be in a .mp4 or .webm format')
 
         if (!currentTree || !filename)
             return await rmAndRes(res, f_dest, 'Invalid body object')
@@ -205,11 +209,12 @@ UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
                 tree: currentTree
             }
 
+
             if (isMovie)
             {
                 let probe: ffmpeg.FfprobeFormat
 
-                try   { probe = await ffprobe(f_dest) }
+                try   { probe  = await ffprobe(f_dest) }
                 catch { return await rmAndRes(res, f_dest, 'Could not probe the file', 500) }
 
                 const duration:   number = Math.round(probe.duration!),
@@ -237,20 +242,23 @@ UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
                     thumbnail: `${Server.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`, 
                     length: (itemObj as CollectionMovie).length
                 }}
+
+                file.filename = `${file_id}.webm`
             }
             else
             {
-                const filesize: number = (await fs.stat(f_dest)).size
+                const filesize: number = (await fs.stat(f_dest)).size,
+                      ext:      string = path.extname(file.originalname)
                 
                 itemObj = {
                     ...comObj,
                     sizeBytes: filesize,
-                    filetype: getFiletype(file.mimetype),
+                    filetype: getFiletype(ext),
                     created,
                     name: f_name
                 } as CollectionFile
 
-                varObj = { file: { filetype: getFiletype(file.mimetype) }}
+                varObj = { file: { filetype: getFiletype(ext) }}
             }
 
             const saveAt: string = findUpdateString(currentTree, user!.saved, 'locFolder')
@@ -315,7 +323,9 @@ UserRoute.patch('/new-folder', JWTAuth, async (req: Request, res: Response) => {
         if (target.items.some(x => x.name === foldername))
             return res.status(400).json({ msg: 'Folder already exists' })
 
-        const newFolder: Omit<CollectionFolder, '_id'> = {
+        const _id: mongoose.Types.ObjectId = new mongoose.Types.ObjectId()
+        const newFolder: CollectionFolder = {
+            _id,
             items: [],
             itemtype: 'folder',
             name: foldername,
@@ -331,7 +341,7 @@ UserRoute.patch('/new-folder', JWTAuth, async (req: Request, res: Response) => {
             }}
         )
 
-        res.status(201).json({ msg: 'Successfully created a new folder' })
+        res.status(201).json({ msg: 'Successfully created a new folder', id: _id })
     }
     catch
     {
@@ -400,7 +410,7 @@ UserRoute.delete('/delete-folder', JWTAuth, async (req: Request, res: Response) 
                             input: '$items',
                             as: 'item',
                             cond: { $in: ['$$item._id', IDs] }
-                          }
+                        }
                     }
                 }
             }

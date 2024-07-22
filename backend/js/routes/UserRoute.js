@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -34,7 +11,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const JWTAuth_1 = __importDefault(require("../middleware/JWTAuth"));
 const findFolder_1 = __importDefault(require("../utils/findFolder"));
 const findUpdateString_1 = __importDefault(require("../utils/findUpdateString"));
-const getFiletype_1 = __importStar(require("../utils/getFiletype"));
+const getFiletype_1 = __importDefault(require("../utils/getFiletype"));
 const ffprobeFile_1 = __importDefault(require("../utils/ffprobeFile"));
 const promises_1 = __importDefault(require("fs/promises"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -129,14 +106,16 @@ UserRoute.post('/logout', JWTAuth_1.default, (req, res) => {
 UserRoute.post('/new-file', JWTAuth_1.default, async (req, res) => {
     const user_uploads = path_1.default.join(__dirname, '..', '..', 'uploads', `${req.id}`), file_id = new mongoose_1.default.Types.ObjectId().toString();
     await Server_1.default.mkdir([user_uploads]);
-    const fu = new Server_1.default.FileUpload(getFiletype_1.AvailableFileTypes);
+    const fu = new Server_1.default.FileUpload(null, ['.exe']);
     const up = fu.multerImageUpload('disk', Server_1.default.GiB * 2, 'fileitem', 'single', user_uploads, (file) => `${file_id}${path_1.default.extname(file.originalname)}`);
     up(req, res, async (err) => {
         const error = fu.multerImageUploadError(err, res, req);
         if (error)
             return error;
-        const { currentTree, filename, note, isMovie } = req.body, file = req.file, f_name = `${filename}${path_1.default.extname(file.originalname)}`, f_dest = `${file.destination}/${file.filename}`;
-        let thumb_file_loc;
+        const { currentTree, filename, note, isMovie } = req.body, file = req.file, ext = path_1.default.extname(file.originalname), f_name = `${filename}${ext}`;
+        let thumb_file_loc, f_dest = `${file.destination}/${file.filename}`;
+        if (isMovie && ext !== '.mp4' && ext !== '.webm')
+            return await (0, removeAndResponse_1.default)(res, f_dest, 'Movie must be in a .mp4 or .webm format');
         if (!currentTree || !filename)
             return await (0, removeAndResponse_1.default)(res, f_dest, 'Invalid body object');
         try {
@@ -182,17 +161,18 @@ UserRoute.post('/new-file', JWTAuth_1.default, async (req, res) => {
                         thumbnail: `${Server_1.default.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`,
                         length: itemObj.length
                     } };
+                file.filename = `${file_id}.webm`;
             }
             else {
-                const filesize = (await promises_1.default.stat(f_dest)).size;
+                const filesize = (await promises_1.default.stat(f_dest)).size, ext = path_1.default.extname(file.originalname);
                 itemObj = {
                     ...comObj,
                     sizeBytes: filesize,
-                    filetype: (0, getFiletype_1.default)(file.mimetype),
+                    filetype: (0, getFiletype_1.default)(ext),
                     created,
                     name: f_name
                 };
-                varObj = { file: { filetype: (0, getFiletype_1.default)(file.mimetype) } };
+                varObj = { file: { filetype: (0, getFiletype_1.default)(ext) } };
             }
             const saveAt = (0, findUpdateString_1.default)(currentTree, user.saved, 'locFolder');
             await Promise.all([
@@ -236,7 +216,9 @@ UserRoute.patch('/new-folder', JWTAuth_1.default, async (req, res) => {
             return res.status(400).json({ msg: 'Folder does not exist' });
         if (target.items.some(x => x.name === foldername))
             return res.status(400).json({ msg: 'Folder already exists' });
+        const _id = new mongoose_1.default.Types.ObjectId();
         const newFolder = {
+            _id,
             items: [],
             itemtype: 'folder',
             name: foldername,
@@ -246,7 +228,7 @@ UserRoute.patch('/new-folder', JWTAuth_1.default, async (req, res) => {
         await User_1.default.updateOne({ _id: req.id }, { $push: {
                 [saveAt]: newFolder
             } });
-        res.status(201).json({ msg: 'Successfully created a new folder' });
+        res.status(201).json({ msg: 'Successfully created a new folder', id: _id });
     }
     catch {
         res.status(500).json({ msg: 'Could not create a directory' });

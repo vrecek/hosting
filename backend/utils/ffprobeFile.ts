@@ -1,8 +1,4 @@
 import ffmpeg from 'fluent-ffmpeg'
-import ffmpeg_static from 'ffmpeg-static'
-
-
-ffmpeg.setFfmpegPath(ffmpeg_static!)
 
 
 const ffprobe = async (file: string): Promise<ffmpeg.FfprobeFormat> => {

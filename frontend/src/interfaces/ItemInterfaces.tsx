@@ -21,7 +21,8 @@ export type FetchItem = (ICollectionFile | ICollectionMovie) &
 
 export interface IItemButtons
 {
-    id: string
+    id:         string
+    outputname: string
 }
 
 export interface IFileArticle extends ICollectionFile

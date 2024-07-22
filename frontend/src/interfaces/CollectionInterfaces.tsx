@@ -98,7 +98,6 @@ export interface UploadSectionValue
     filename: string
     filetype: string
     filesize: number
-    movie?:   boolean
 }
 
 export interface FileAddData
@@ -127,3 +126,14 @@ export interface ICollectionMovieElement
 }
 
 export type ICollectionFileElement = Omit<ICollectionFile, 'note' | 'created'>
+
+export interface DirInsertData
+{
+    id: string
+}
+
+export interface IPopupTitle
+{
+    text: string
+    icon: JSX.Element
+}

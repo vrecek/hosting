@@ -37,7 +37,7 @@ export interface CollectionFolder extends ItemType
     items: PossibleItem[]
 }
 
-export type FileTypes = 'picture' | 'video' | 'music' | 'txt' | 'code' | 'other'
+export type FileTypes = 'picture' | 'video' | 'audio' | 'txt' | 'code' | 'other'
 export type ItemTypes = 'folder' | 'file' | 'movie'
 
 export type PossibleItem = CollectionFile|CollectionMovie|CollectionFolder

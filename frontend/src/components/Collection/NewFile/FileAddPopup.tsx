@@ -9,6 +9,8 @@ import defaultFixedResult from "@/utils/DefaultResult"
 import Client from "@/utils/Client"
 import { CollectionItemsContext } from "../Collection"
 import { ICollectionFile, ICollectionMovie } from "@/interfaces/UserInterfaces"
+import PopupTitle from "../PopupTitle"
+import { FaFileMedical } from "react-icons/fa"
 
 
 const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
@@ -38,8 +40,8 @@ const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
             switch (x.type)
             {
                 case 'text': return x.value
-                case 'checkbox': return x.checked ? 'true' : ''
-                case 'file': return x.files![0] ?? null
+                case 'checkbox': return x.checked
+                case 'file': return x.files?.[0] ?? null
                 default: return ''
             }
         }) as [File, string, string, string]
@@ -48,7 +50,7 @@ const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
         fd.append('fileitem', file)
         fd.append('filename', filename)
         fd.append('note', note)
-        fd.append('isMovie', asMovie ?? '')
+        fd.append('isMovie', asMovie || '')
         fd.append('currentTree', currentTree)
 
         const [err, data] = await Client.Fetches.http<FileAddData>(import.meta.env.VITE_USER_NEWFILE, 'POST', {
@@ -94,16 +96,6 @@ const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
         cancelMenu()
     }
 
-    const movieInputFn = (e: React.ChangeEvent) => {
-        const t: HTMLInputElement = e.currentTarget! as HTMLInputElement
-
-        setSect(curr => {
-            curr!.movie = t.checked
-
-            return {...curr!}
-        })
-    }
-
     const cancelMenu = (): void => setMenu(null)
 
 
@@ -112,8 +104,12 @@ const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
 
             <form onSubmit={saveFn}>
 
-                <p className="header-info">Upload a file</p>
-                <p className="tree-info">{currentTree}</p>
+                <PopupTitle icon={<FaFileMedical />} text="Upload new file" />
+
+                <p className="tree-info">
+                    <span>IN: </span> 
+                    {currentTree}
+                </p>
 
                 <UploadInput setSect={setSect} />
 
@@ -127,13 +123,12 @@ const FileAddPopup = ({ currentTree, setMenu }: IFilePopup) => {
                     )
                 }
                 {
-                    ['video/mp4', 'video/x-matroska'].some(x => x === upSect?.filetype) &&
+                    ['mp4', 'mkv'].some(x => x === upSect?.filetype) &&
                         <Input
                             defVal={upSect!.filename}
                             type="checkbox"
                             label="Mark as movie"
                             cname="movie-mark"
-                            changeFn={movieInputFn}
                         />
                 }
 

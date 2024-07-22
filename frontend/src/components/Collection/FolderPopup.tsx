@@ -1,4 +1,4 @@
-import { ICollectionContext, IFolderPopup } from "@/interfaces/CollectionInterfaces"
+import { DirInsertData, ICollectionContext, IFolderPopup } from "@/interfaces/CollectionInterfaces"
 import Client from "@/utils/Client"
 import { CollectionItemsContext } from "./Collection"
 import React from "react"
@@ -7,6 +7,8 @@ import { ICollectionFolder } from "@/interfaces/UserInterfaces"
 import defaultLoad from "@/utils/DefaultLoad"
 import ButtonDiv from "./ButtonDiv"
 import defaultFixedResult from "@/utils/DefaultResult"
+import PopupTitle from "./PopupTitle"
+import { FaFolderPlus } from "react-icons/fa"
 
 
 const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
@@ -22,7 +24,7 @@ const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
 
         const load = defaultLoad(t)
 
-        const [err] = await Client.Fetches.http(import.meta.env.VITE_USER_NEWFOLDER, 'PATCH', {
+        const [err, data] = await Client.Fetches.http<DirInsertData>(import.meta.env.VITE_USER_NEWFOLDER, 'PATCH', {
             credentials: 'include',
             body: {
                 foldername: i.value,
@@ -44,6 +46,7 @@ const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
             curr!.items.push({
                 items: [],
                 itemtype: 'folder',
+                _id: data?.json?.id,
                 name: i.value,
                 tree: `${currentTree}/${i.value}`
             } as ICollectionFolder)
@@ -58,7 +61,9 @@ const FolderPopup = ({ setMenu, currentTree }: IFolderPopup) => {
 
             <form onSubmit={save}>
 
-                <p>Folder name</p>    
+                <PopupTitle icon={<FaFolderPlus />} text="Create new folder" />                
+
+                <p className="fname">Folder name</p>    
                 <input type='text' />
 
                 <ButtonDiv

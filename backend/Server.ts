@@ -30,14 +30,16 @@ class Server
 
     public static FileUpload = class
     {
-        private allowedExts:    string[]
-        private multerFileSize: number
+        private allowedExts:    i.Maybe<string[]>
+        private disallowedExts: i.Maybe<string[]>
         private multerMethod:   i.Maybe<MulterUploadType>
+        private multerFileSize: number
 
 
-        public constructor(allowedExts: string[])
+        public constructor(allowedExts?: i.Maybe<string[]>, disallowedExts?: i.Maybe<string[]>)
         {
-            this.allowedExts    = allowedExts
+            this.allowedExts    = allowedExts    ?? null
+            this.disallowedExts = disallowedExts ?? null
             this.multerFileSize = 0
             this.multerMethod   = null
         }
@@ -81,8 +83,15 @@ class Server
             const storage: multer.StorageEngine = this.returnMulterStorage(type, uploadPath, filenameFn)
 
             const fileFilter = (req: Request, file: Express.Multer.File, callback: FileFilterCallback): void => {
-                if (this.allowedExts.some(x => x === file.mimetype))
+                const ext: string = path.extname(file.originalname)
+                
+                if (
+                    (!this.disallowedExts && !this.allowedExts) ||
+                    this.disallowedExts?.every(x => x !== ext) ||
+                    this.allowedExts?.some(x => x === ext)
+                )
                     return callback(null, true)
+
 
                 const error: Error = new Error()
                 Object.assign(error, { code: 'WRONG_MIMETYPE' })
@@ -216,7 +225,7 @@ class Server
         const illegalChars: string[] = illegal ?? ['.', ',', '<', '>', ';', ':']
         
         if (!replaceChar)
-            return str ? illegalChars.some(x => str.includes(x)) : true
+            return illegalChars.some(x => str.includes(x))
 
         const rx: RegExp = new RegExp(`[${illegalChars.join('')}]`, 'g')
         return str.replaceAll(rx, replaceChar)
@@ -287,11 +296,11 @@ class Server
                 const fileRx:   RegExp   = new RegExp(paths.at(-1)!),
                       basename: string   = path.join(...paths.slice(0, -1)),
                       lsdir:    string[] = await fs.readdir(basename)
-
+                      
                 for (const file of lsdir)
                     if (fileRx.test(file))
                     {
-                        await fs.rm(`${basename}/${file}`)
+                        await fs.rm(`${basename}/${file}`, { recursive: !!opts.recursive })
 
                         if (!opts.recursive) return
                     }
@@ -299,7 +308,7 @@ class Server
                 return
             }
 
-            await fs.rm(path.join(...paths), { recursive: opts.recursive })
+            await fs.rm(path.join(...paths), { recursive: !!opts.recursive })
         }
         catch (e: any)
         {
@@ -398,16 +407,6 @@ const defIRemoveOpts: IRemoveOpts = {recursive: false, throwErr: false, fileRx: 
 //|*********|//
 type ExpressResponse = EResponse<any, Record<string, any>>
 
-// interface MulterDiskFileType {
-//     fieldname: string,
-//     originalname: string,
-//     encoding: string,
-//     mimetype: string,   
-//     destination: string,
-//     filename: string,
-//     path: string,
-//     size: number
-// }
 
 
 export {

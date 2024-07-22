@@ -23,10 +23,12 @@ class Server {
     //|*************|//
     static FileUpload = class {
         allowedExts;
-        multerFileSize;
+        disallowedExts;
         multerMethod;
-        constructor(allowedExts) {
-            this.allowedExts = allowedExts;
+        multerFileSize;
+        constructor(allowedExts, disallowedExts) {
+            this.allowedExts = allowedExts ?? null;
+            this.disallowedExts = disallowedExts ?? null;
             this.multerFileSize = 0;
             this.multerMethod = null;
         }
@@ -59,7 +61,10 @@ class Server {
         multerImageUpload(type, maxSizeKb, fieldString, uploadMethod, uploadPath, filenameFn) {
             const storage = this.returnMulterStorage(type, uploadPath, filenameFn);
             const fileFilter = (req, file, callback) => {
-                if (this.allowedExts.some(x => x === file.mimetype))
+                const ext = path_1.default.extname(file.originalname);
+                if ((!this.disallowedExts && !this.allowedExts) ||
+                    this.disallowedExts?.every(x => x !== ext) ||
+                    this.allowedExts?.some(x => x === ext))
                     return callback(null, true);
                 const error = new Error();
                 Object.assign(error, { code: 'WRONG_MIMETYPE' });
@@ -145,7 +150,7 @@ class Server {
     static sanitizedString(str, illegal, replaceChar) {
         const illegalChars = illegal ?? ['.', ',', '<', '>', ';', ':'];
         if (!replaceChar)
-            return str ? illegalChars.some(x => str.includes(x)) : true;
+            return illegalChars.some(x => str.includes(x));
         const rx = new RegExp(`[${illegalChars.join('')}]`, 'g');
         return str.replaceAll(rx, replaceChar);
     }
@@ -183,13 +188,13 @@ class Server {
                 const fileRx = new RegExp(paths.at(-1)), basename = path_1.default.join(...paths.slice(0, -1)), lsdir = await promises_1.default.readdir(basename);
                 for (const file of lsdir)
                     if (fileRx.test(file)) {
-                        await promises_1.default.rm(`${basename}/${file}`);
+                        await promises_1.default.rm(`${basename}/${file}`, { recursive: !!opts.recursive });
                         if (!opts.recursive)
                             return;
                     }
                 return;
             }
-            await promises_1.default.rm(path_1.default.join(...paths), { recursive: opts.recursive });
+            await promises_1.default.rm(path_1.default.join(...paths), { recursive: !!opts.recursive });
         }
         catch (e) {
             if (opts.throwErr)

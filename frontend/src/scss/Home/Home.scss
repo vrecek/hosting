@@ -43,10 +43,9 @@ main.homepage {
 
     figure {
         &.bg-img {
-            position: absolute;
             left: 0;
             top: 0;
-            z-index: -1;
+            @include Layer(-1, absolute);
             opacity: .1;
             width: 100%;
         }

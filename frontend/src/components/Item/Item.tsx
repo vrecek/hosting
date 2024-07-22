@@ -61,7 +61,6 @@ const Item = () => {
                         filetype={(item as ICollectionFile).filetype}
                     />
                 </>)
-                    
             }
 
         </main>

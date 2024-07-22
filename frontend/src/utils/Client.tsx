@@ -9,7 +9,7 @@ namespace RB {
         public abstract setType(type: RB.BoxType): this
         public abstract setStyles({left, pos, top, bottom, right, width}: BoxPositions): this
         public abstract fadeAnimation(): this
-        public abstract append(element: Element, msg: string): this
+        public abstract append(element: Element, msg: string): this | null
         public abstract remove(afterMs?: number): void
     }
 
@@ -179,9 +179,9 @@ export default class Client {
             return this
         }
 
-        public append(element: Element, msg: string, cname?: string): this
+        public append(element: Element, msg: string, cname?: string): this | null
         {
-            if (this.box || !this.typeStyles) return this
+            if (this.box || !this.typeStyles) return null
 
             const div:  HTMLDivElement  = document.createElement('div'),
                   p:    HTMLDivElement  = document.createElement('p'),
@@ -191,7 +191,7 @@ export default class Client {
 
             const WHITE_COLOR: string = 'rgb(250, 250, 250)'
             const {pos, bottom, left, right, top, width, padding, translate} = this.positionStyles
-            console.log(pos)
+
             Object.assign(div.style, {
                 background: this.typeStyles.background,
                 display: 'flex',
@@ -220,6 +220,7 @@ export default class Client {
             Object.assign(span.style, {
                 width: '35px',
                 height: '35px',
+                flexShrink: '0',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -227,7 +228,6 @@ export default class Client {
                 color: WHITE_COLOR,
                 borderRadius: '50%',
                 fontWeight: '700',
-                fontSize: '1rem'
             } as CSSStyleDeclaration)
 
 
@@ -265,6 +265,7 @@ export default class Client {
 
                 this.box?.remove()
                 this.box = null
+                this.removeAnim = null
 
             }, afterMs ?? 0)
         }
@@ -642,7 +643,7 @@ export default class Client {
      * @param dateNum Time in ms
      * @returns String representing a date in a "x days ago" format
     */
-    public static numberToDateString(dateNum: number): string
+    public static numberToPastDateString(dateNum: number): string
     {
         const diff: number = Date.now() - dateNum,
               days: number = diff / 1000 / 60 / 60 / 24 
@@ -657,8 +658,27 @@ export default class Client {
 
 
     /**
-     * @param seconds seconds 
-     * @returns string in a "xx:xx:xx" or "xx:xx" format
+     * 
+     * @param dateNum Time in ms
+     * @param as Print output as: date, time, or both
+     * @returns String representing date (e.g 7/18/2024 2:52:43 PM)
+    */
+    public static numberToDateString(dateNum: number, as?: 'date' | 'time'): string
+    {
+        const d: Date = new Date(dateNum)
+
+        switch (as)
+        {
+            case 'date': return d.toLocaleDateString()
+            case 'time': return d.toLocaleTimeString()
+            default: return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
+        }
+    }
+
+
+    /**
+     * @param seconds total seconds 
+     * @returns String in a "xx:xx:xx" or "xx:xx" format
     */
     public static secondsToTimeString(seconds: number): string
     {

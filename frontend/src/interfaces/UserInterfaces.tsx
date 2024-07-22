@@ -35,7 +35,7 @@ export interface ICollectionFolder extends Omit<ItemType, '_id'>
     items: PossibleItems[]
 }
 
-export type FileTypes = 'picture' | 'video' | 'music' | 'txt' | 'code' | 'other'
+export type FileTypes = 'picture' | 'video' | 'audio' | 'txt' | 'code' | 'other'
 export type ItemTypes = 'folder' | 'file' | 'movie'
 
 export type PossibleItems = (ICollectionFile|ICollectionMovie|ICollectionFolder)

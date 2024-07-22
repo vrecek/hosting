@@ -23,6 +23,16 @@ const ItemContent = ({ itemURL, filetype }: IItemContent) => {
                 break
 
                 case 'video':
+                    if (ftype !== 'mp4' && ftype !== 'webm')
+                    {
+                        setContent(
+                            <p className="other">
+                                To preview, video must be in a <span>.mp4</span>, or a <span>.webm</span> format
+                            </p>
+                        )
+                        return 
+                    }
+
                     setContent(
                         <video controls>
                             <source src={itemURL} type={`video/${ftype}`} />
@@ -30,7 +40,17 @@ const ItemContent = ({ itemURL, filetype }: IItemContent) => {
                     )
                 break
 
-                case 'music':
+                case 'audio':
+                    if (['ogg', 'wav', 'mp3'].every(x => x !== ftype))
+                    {
+                        setContent(
+                            <p className="other">
+                                To preview, audio must be in a <span>.ogg</span>, <span>.wav</span> or a <span>.mp3</span> format
+                            </p>
+                        )
+                        return 
+                    }
+
                     if (ftype === 'mp3') ftype = 'mpeg'
 
                     setContent(

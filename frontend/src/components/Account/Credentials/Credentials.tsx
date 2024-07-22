@@ -7,6 +7,10 @@ import Register from "./Register"
 import { UserContext } from "@/App"
 import { Maybe } from "@/interfaces/CommonInterfaces"
 import UserType from "@/interfaces/UserInterfaces"
+import { MdAccountBalance } from "react-icons/md"
+import Icon from "@/components/Common/Icon"
+import BodyBackground from "@/components/Layout/BodyBackground"
+
 
 const Credentials = () => {
     const n = useNavigate()
@@ -46,13 +50,25 @@ const Credentials = () => {
     return (
         <main className="credentials">
 
-            <section className={`main-container ${pathname}`}>
+            <BodyBackground />
 
-                <SelectMenu />
-                
-                {display}
+            <div className="wrapper">
 
-            </section>
+                <section className="left-section">
+
+                    <Icon icon={<MdAccountBalance />} />
+
+                </section>
+
+                <section className={`main-container ${pathname}`}>
+
+                    <SelectMenu />
+                    
+                    {display}
+
+                </section>
+
+            </div>
 
         </main>
     )

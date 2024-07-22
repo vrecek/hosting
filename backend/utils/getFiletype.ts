@@ -4,39 +4,34 @@ import { FileTypes } from "../interfaces/UserSchema"
 const getFiletype = (fileext: string): FileTypes  => {
     switch (fileext)
     {
-        case 'image/png':
-        case 'image/jpg':
-        case 'image/jpeg':
-        case 'image/gif':
+        case '.png':
+        case '.jpg':
+        case '.jpeg':
+        case '.gif':
             return 'picture'
 
-        case 'video/mp4':
-        case 'video/x-matroska':
+        case '.mp4':
+        case '.mkv':
             return 'video'
 
-        case 'audio/mpeg':
-            return 'music'
+        case '.mp3':
+        case '.avi':
+        case '.ogg':
+            return 'audio'
 
-        case 'text/plain':
+        case '.txt':
             return 'txt'
 
-        case 'application/x-javascript':
-        case 'application/x-shellscript':
-        case 'text/x-python':
+        case '.js':
+        case '.sh':
+        case '.py':
+        case '.c':
+        case '.cpp':
             return 'code'
 
         default: return 'other'
     }
 }
-
-
-export const AvailableFileTypes: string[] = [
-    'image/png', 'image/jpg', 'image/jpeg', 'image/gif',
-    'video/mp4', 'video/x-matroska',
-    'audio/mpeg',
-    'text/plain',
-    'application/x-javascript', 'application/x-shellscript', 'text/x-python'
-]
 
 
 export default getFiletype

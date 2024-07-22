@@ -1,32 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AvailableFileTypes = void 0;
 const getFiletype = (fileext) => {
     switch (fileext) {
-        case 'image/png':
-        case 'image/jpg':
-        case 'image/jpeg':
-        case 'image/gif':
+        case '.png':
+        case '.jpg':
+        case '.jpeg':
+        case '.gif':
             return 'picture';
-        case 'video/mp4':
-        case 'video/x-matroska':
+        case '.mp4':
+        case '.mkv':
             return 'video';
-        case 'audio/mpeg':
-            return 'music';
-        case 'text/plain':
+        case '.mp3':
+        case '.avi':
+        case '.ogg':
+            return 'audio';
+        case '.txt':
             return 'txt';
-        case 'application/x-javascript':
-        case 'application/x-shellscript':
-        case 'text/x-python':
+        case '.js':
+        case '.sh':
+        case '.py':
+        case '.c':
+        case '.cpp':
             return 'code';
         default: return 'other';
     }
 };
-exports.AvailableFileTypes = [
-    'image/png', 'image/jpg', 'image/jpeg', 'image/gif',
-    'video/mp4', 'video/x-matroska',
-    'audio/mpeg',
-    'text/plain',
-    'application/x-javascript', 'application/x-shellscript', 'text/x-python'
-];
 exports.default = getFiletype;

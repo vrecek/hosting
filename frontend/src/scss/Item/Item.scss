@@ -42,7 +42,7 @@ main.item-page {
                 }
 
                 &.item-download span { background: $clr-blued; }
-                &.item-delete span { background: $clr-red; }
+                &.item-delete span { background: $clr-redl; }
             }
         }
 
@@ -120,6 +120,11 @@ main.item-page {
                 p.other {
                     font-size: .8rem;
                     color: $clr-whitedr;
+
+                    span {
+                        font-size: .9rem;
+                        color: $clr-bluel;
+                    }
                 }
             }
 

@@ -29,9 +29,15 @@ $clr-bluel: rgb(109, 160, 255);
 $clr-blued: rgb(49, 85, 190);
 $clr-bluedr:rgb(45, 70, 143);
 
-$clr-purple: rgb(159, 51, 213);
+$clr-purplelr: rgb(146, 54, 193);
+$clr-purplel: rgb(119, 44, 157);
+$clr-purpled: rgb(100, 38, 131);
+$clr-purpledr: rgb(79, 27, 105);
 
-$clr-red: rgb(199, 11, 11);
+$clr-redlr: rgb(234, 18, 18);
+$clr-redl: rgb(199, 11, 11);
+$clr-redd: rgb(164, 19, 19);
+$clr-reddr: rgb(131, 15, 15);
 
 $clr-orangel: rgb(255, 136, 0);
 $clr-oranged: rgb(230, 72, 15);
@@ -81,6 +87,7 @@ $nav-height: 60px;
    min-width: #{$minPX}px;
    max-width: #{$max};
 }
+
 // Resets the min/max width properties. Use with SetWidth
 @mixin ResetWidth {
    min-width: auto;

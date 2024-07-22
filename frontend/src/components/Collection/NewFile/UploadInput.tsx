@@ -10,12 +10,19 @@ const UploadInput = ({ setSect }: IUploadInput) => {
               file: Maybe<File>      = t.files?.[0]
 
         if (!file)
+        {
             setSect(null)
-        
+            return
+        }
+
+        const dotIndex: number = file.name.indexOf('.'),
+              fname:    string = dotIndex !== -1 ? file.name.slice(0, dotIndex) : file.name,
+              ftype:    string = dotIndex !== -1 ? file.name.slice(dotIndex + 1) : 'unknown'
+
         setSect({
-            filename: file!.name.slice(0, file!.name.indexOf('.')),
-            filetype: file!.type,
-            filesize: file!.size,
+            filename: fname,
+            filetype: ftype,
+            filesize: file.size,
             movie: undefined
         })
     }

@@ -10,7 +10,7 @@ const iconFromFileType = (filetype: FileTypes): JSX.Element => {
         case 'picture': return <FaImage />
         case 'video': return <BiSolidMoviePlay />
         case 'code': return <FaCode />
-        case 'music': return <FaMusic />
+        case 'audio': return <FaMusic />
         case 'txt': return <FaFileAlt />
         case 'other': 
         default: return <AiOutlineFileUnknown />

@@ -6,6 +6,7 @@ import findItem from '../utils/findItem'
 import { ItemType } from '../interfaces/UserSchema'
 import Server, { i } from '../Server'
 import path from 'path'
+import fs from 'fs/promises'
 import { FileItems } from '../interfaces/FileSchema'
 import StaticAuth from '../middleware/StaticAuth'
 import findUpdateString from '../utils/findUpdateString'
@@ -37,9 +38,13 @@ ItemRoute.get('/:itemId', JWTAuth, async (req: Request, res: Response) => {
         if (!searchedFile || !file)
             return res.status(404).json({ msg: 'File not found' })
 
+        const filepath: string = path.join(__dirname, '..', '..', 'uploads', req.id!, file.items[0].secretName)
+
+        try   { await fs.access(filepath) }
+        catch { return res.status(404).json({ msg: 'File does not exist' }) }
 
         const fileLoc: string = `${Server.getProtocolHost(req)}/files/${req.id}/${file.items[0].secretName}`
-
+        
         if (searchedFile.itemtype === 'file')
         {
             return res.json({
@@ -58,8 +63,8 @@ ItemRoute.get('/:itemId', JWTAuth, async (req: Request, res: Response) => {
     }
 })
 
-ItemRoute.get('/download/:itemId', JWTAuth, StaticAuth, async (req: Request, res: Response) => {
-    const {itemId} = req.params
+ItemRoute.get('/download/:itemId/:outname?', JWTAuth, StaticAuth, async (req: Request, res: Response) => {
+    const {itemId, outname} = req.params
 
     try 
     {
@@ -71,9 +76,8 @@ ItemRoute.get('/download/:itemId', JWTAuth, StaticAuth, async (req: Request, res
         if (!file)
             return res.status(404).json({ msg: 'File not found' })
         
-        
         const filepath: string = path.join(__dirname, '..', '..', 'uploads', req.id!, file.secretName)
-        res.download(filepath, file.secretName)
+        res.download(filepath, outname ?? file.secretName)
     } 
     catch
     {
@@ -126,9 +130,8 @@ ItemRoute.delete('/delete/:itemId', JWTAuth, async (req: Request, res: Response)
 
         res.json({ msg: 'Successfully deleted' })
     }
-    catch (e)
+    catch
     {
-        console.log(e)
         res.status(500).json({ msg: 'Could not delete the file' })
     }
 })

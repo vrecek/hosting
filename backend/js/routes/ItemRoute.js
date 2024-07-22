@@ -10,6 +10,7 @@ const User_1 = __importDefault(require("../models/User"));
 const findItem_1 = __importDefault(require("../utils/findItem"));
 const Server_1 = __importDefault(require("../Server"));
 const path_1 = __importDefault(require("path"));
+const promises_1 = __importDefault(require("fs/promises"));
 const StaticAuth_1 = __importDefault(require("../middleware/StaticAuth"));
 const findUpdateString_1 = __importDefault(require("../utils/findUpdateString"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -30,6 +31,13 @@ ItemRoute.get('/:itemId', JWTAuth_1.default, async (req, res) => {
         });
         if (!searchedFile || !file)
             return res.status(404).json({ msg: 'File not found' });
+        const filepath = path_1.default.join(__dirname, '..', '..', 'uploads', req.id, file.items[0].secretName);
+        try {
+            await promises_1.default.access(filepath);
+        }
+        catch {
+            return res.status(404).json({ msg: 'File does not exist' });
+        }
         const fileLoc = `${Server_1.default.getProtocolHost(req)}/files/${req.id}/${file.items[0].secretName}`;
         if (searchedFile.itemtype === 'file') {
             return res.json({
@@ -45,15 +53,15 @@ ItemRoute.get('/:itemId', JWTAuth_1.default, async (req, res) => {
         res.status(500).json({ msg: 'Could not get the item' });
     }
 });
-ItemRoute.get('/download/:itemId', JWTAuth_1.default, StaticAuth_1.default, async (req, res) => {
-    const { itemId } = req.params;
+ItemRoute.get('/download/:itemId/:outname?', JWTAuth_1.default, StaticAuth_1.default, async (req, res) => {
+    const { itemId, outname } = req.params;
     try {
         const file = (await File_1.default.findOne(...(0, queryUtils_1.queryFileItemById)(req.id, itemId))
             .lean())?.items?.[0];
         if (!file)
             return res.status(404).json({ msg: 'File not found' });
         const filepath = path_1.default.join(__dirname, '..', '..', 'uploads', req.id, file.secretName);
-        res.download(filepath, file.secretName);
+        res.download(filepath, outname ?? file.secretName);
     }
     catch {
         return res.status(500).json({ msg: 'Could not download the file' });
@@ -85,8 +93,7 @@ ItemRoute.delete('/delete/:itemId', JWTAuth_1.default, async (req, res) => {
         ]);
         res.json({ msg: 'Successfully deleted' });
     }
-    catch (e) {
-        console.log(e);
+    catch {
         res.status(500).json({ msg: 'Could not delete the file' });
     }
 });
