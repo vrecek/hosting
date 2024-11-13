@@ -1,7 +1,7 @@
-import Image from "../Common/Image"
 import ToggleItemContent from "./ToggleItemContent"
 import React from "react"
 import { IItemContent } from "@/interfaces/ItemInterfaces"
+import Image from "@/components/Common/Image"
 
 
 const ItemContent = ({ itemURL, filetype }: IItemContent) => {

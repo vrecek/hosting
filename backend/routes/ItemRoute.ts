@@ -3,7 +3,7 @@ import JWTAuth from '../middleware/JWTAuth'
 import File from '../models/File'
 import User from '../models/User'
 import findItem from '../utils/findItem'
-import { ItemType } from '../interfaces/UserSchema'
+import { CollectionMovie, ItemType } from '../interfaces/UserSchema'
 import Server, { i } from '../Server'
 import path from 'path'
 import fs from 'fs/promises'
@@ -33,28 +33,24 @@ ItemRoute.get('/:itemId', JWTAuth, async (req: Request, res: Response) => {
         const searchedFile = findItem(user!.saved[0], (x: ItemType) => {
             return x.itemtype !== 'folder' && 
                    x._id.toString() === itemId
-        })                          
+        }) as CollectionMovie                       
 
         if (!searchedFile || !file)
             return res.status(404).json({ msg: 'File not found' })
 
-        const filepath: string = path.join(__dirname, '..', '..', 'uploads', req.id!, file.items[0].secretName)
+        const filepath:  string = path.join(__dirname, '..', '..', 'uploads', req.id!, file.items[0].secretName),
+              protohost: string = Server.getProtocolHost(req)
 
         try   { await fs.access(filepath) }
         catch { return res.status(404).json({ msg: 'File does not exist' }) }
 
-        const fileLoc: string = `${Server.getProtocolHost(req)}/files/${req.id}/${file.items[0].secretName}`
-        
-        if (searchedFile.itemtype === 'file')
-        {
-            return res.json({
-                ...searchedFile,
-                itemURL: fileLoc
-            })
-        }
+        const fileLoc: string = `${protohost}/files/${req.id}/${file.items[0].secretName}`
+
+        searchedFile.thumbnail = `${protohost}/files/${req.id}/thumbnails/${searchedFile.thumbnail}`
 
         return res.json({
-            msg: true
+            ...searchedFile,
+            itemURL: fileLoc
         })
     }
     catch

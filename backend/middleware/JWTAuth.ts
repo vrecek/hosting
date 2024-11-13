@@ -20,7 +20,7 @@ const JWTAuth = async (req: Request, res: Response, next: NextFunction) => {
         req.id = auth.id
         next()
     }
-    catch(e)
+    catch
     {
         req.id = undefined
         return res.status(401).json({ msg: 'User not authenticated' })

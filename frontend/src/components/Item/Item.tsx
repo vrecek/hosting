@@ -4,10 +4,10 @@ import Client from '@/utils/Client'
 import defaultLoad from '@/utils/DefaultLoad'
 import React from 'react'
 import { Location, useLocation, useNavigate } from 'react-router-dom'
-import FileArticle from './FileArticle'
 import { Maybe } from '@/interfaces/CommonInterfaces'
-import { ICollectionFile } from '@/interfaces/UserInterfaces'
-import FileContent from './FileContent'
+import { ICollectionFile, ICollectionMovie } from '@/interfaces/UserInterfaces'
+import ItemFileElement from './ItemFileElement'
+import ItemMovieElement from './ItemMovieElement'
 
 
 const Item = () => {
@@ -44,23 +44,12 @@ const Item = () => {
 
             {
                 item.itemtype === 'file' &&
-                (<>
-                    <FileArticle
-                        filetype={(item as ICollectionFile).filetype}
-                        created={item.created}
-                        note={item.note}
-                        _id={item._id}
-                        itemtype={item.itemtype}
-                        name={item.name}
-                        sizeBytes={item.sizeBytes}
-                        tree={item.tree}
-                    />
+                    <ItemFileElement item={item as FetchItem<ICollectionFile>} />
+            }
 
-                    <FileContent 
-                        itemURL={item.itemURL}
-                        filetype={(item as ICollectionFile).filetype}
-                    />
-                </>)
+            {
+                item.itemtype === 'movie' &&
+                    <ItemMovieElement item={item as FetchItem<ICollectionMovie>} />
             }
 
         </main>

@@ -1,6 +1,6 @@
+import Icon from "@/components/Common/Icon"
 import { IToggleItemContent } from "@/interfaces/ItemInterfaces"
 import { FaEye, FaEyeSlash } from "react-icons/fa"
-import Icon from "../Common/Icon"
 
 
 const ToggleItemContent = ({ toggled, setToggle }: IToggleItemContent) => {

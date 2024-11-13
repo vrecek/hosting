@@ -1,9 +1,9 @@
-import KeyValue from "./KeyValue"
+import KeyValue from "../KeyValue"
 import { FaRegFloppyDisk, FaLocationDot } from "react-icons/fa6"
 import { FaFileAlt } from "react-icons/fa"
 import { IoTime } from "react-icons/io5"
 import { FaInfoCircle } from "react-icons/fa"
-import ItemButtons from "./ItemButtons"
+import ItemButtons from "../ItemButtons"
 import Client from "@/utils/Client"
 import { IFileArticle } from "@/interfaces/ItemInterfaces"
 

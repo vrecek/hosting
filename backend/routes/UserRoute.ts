@@ -242,8 +242,6 @@ UserRoute.post('/new-file', JWTAuth, async (req: Request, res: Response) => {
                     thumbnail: `${Server.getProtocolHost(req)}/files/${req.id}/thumbnails/${thumb_name}`, 
                     length: (itemObj as CollectionMovie).length
                 }}
-
-                file.filename = `${file_id}.webm`
             }
             else
             {

@@ -14,7 +14,7 @@ export interface IKeyValue
     icon?:  JSX.Element
 }
 
-export type FetchItem = (ICollectionFile | ICollectionMovie) &
+export type FetchItem<T = (ICollectionFile | ICollectionMovie)> = T &
 {
     itemURL: string
 }
@@ -39,4 +39,9 @@ export interface IItemContent
 {
     itemURL:  string
     filetype: FileTypes
+}
+
+export interface IItemFileElement<T>
+{
+    item: FetchItem<T>
 }

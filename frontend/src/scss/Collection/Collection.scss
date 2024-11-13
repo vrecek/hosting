@@ -33,6 +33,7 @@ main.collection {
             width: 30%;
             aspect-ratio: 1.5;
             cursor: pointer;
+            overflow: hidden;
 
             p.title {
                 font-family: 'Inter';
@@ -42,6 +43,7 @@ main.collection {
                 margin: .2em;
                 margin-left: 1em;
                 letter-spacing: -1px;
+                word-wrap: break-word;
                 text-shadow: 0 0 3px $clr-blackd;
             }
 
@@ -66,8 +68,8 @@ main.collection {
                 top: 0;
 
                 img {
-                    @include FullSize;
-                    object-fit: cover;
+                    width: 100%;
+                    height: min-content;
                 }
             }
         }

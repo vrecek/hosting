@@ -2,152 +2,207 @@
 
 
 main.item-page {
-    @include Flex(sb, fs);
-    padding: 3em;
-
-    article.item-article {
-        width: 55%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        height: calc(100vh - $nav-height - 6em);
-        position: sticky;
-        top: 2em;
-
-        h1 {
-            font-weight: 900;
-            font-family: 'Inter';
-            font-size: 2rem;
-            margin-bottom: 1em;
-        }
-
-        section.item-buttons {
-            margin-top: 2em;
-            flex-grow: 1;
-            @include Flex(fs, fe);
-
-            div.icon-button-div {
-                margin-right: 1em;
-
-                span {
-                    border-radius: .5em;
-                    @include HoverBG;
-                    @include FullSize(60px);
-                    @include Flex(c, c);
-                    color: $clr-whitel;
+    section.item-movie-element {
+        background: $clr-blackdr;
         
-                    svg {
-                        @include FullSize(50%);
-                    }
-                }
-
-                &.item-download span { background: $clr-blued; }
-                &.item-delete span { background: $clr-redl; }
-            }
+        video {
+            width: 100%;
+            height: calc(100vh - $nav-height);
+            object-fit: cover;
         }
 
-        div {
-            @include Flex;
-            margin-bottom: .5em;
+        article.text-content {
+            padding: 2em;
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
 
-            p {
+            figure {
+                @include Layer(1, absolute);
+                left: 0;
+                top: 0;
                 width: 100%;
-                min-width: min-content;
+                opacity: .15;
 
-                &.name {
-                    margin-right: 1em;
-                    display: flex;
-                    font-family: 'Inter';
-                    font-weight: 300;
-                    width: 30%;
-
-                    span {
-                        margin-right: 1em;
-                        @include FullSize(30px);
-                    }
+                img {
+                    width: 100%;
                 }
+            }
 
-                &.value {
-                    width: 70%;
-                    text-align: right;
-                    font-family: 'UbuntuMono';
-                    font-weight: bold;
-                }
+            h1 {
+                font-size: 3rem;
+                font-weight: 900;
+                font-family: 'Inter';
+                width: 80%;
+                margin-bottom: 1em
+            }
+
+            p.info {
+                text-transform: uppercase;
+                font-size: .8rem;
+                letter-spacing: -1px;
+                margin-bottom: .5em;
+            }
+
+            p.desc {
+                color: $clr-greyl;
+                font-size: .95rem;
+                width: 80%;
             }
         }
     }
 
-    section.item-content {
-        width: 40%;
-        background: rgba(30, 30, 30, .25);
-        border-radius: .75em;
-        padding: 1em;
-        min-height: calc(100vh - $nav-height - 6em);
-        display: flex;
-        flex-direction: column;
+    section.item-file-element {
+        @include Flex(sb, fs);
+        padding: 3em;
 
-        section.toggle-item-content {
-            @include Flex(fe, fe);
-            margin-bottom: 3em;
-
-            p {
-                font-size: .8rem;
-                margin-right: .25em;
-                text-transform: uppercase;
-                font-family: 'Inter';
-                font-weight: 800;
-            }
-
-            span {
-                @include FullSize(60px);
-                cursor: pointer;
-                background: $clr-greend;
-                border-radius: .5em;
-                display: block;
-                @include Flex(c, c);
-
-                svg {
-                    @include FullSize(50%);
-                }
-            }
+        article.item-article,
+        section.item-content {
+            height: calc(100vh - $nav-height - 6em);
         }
 
-        section.content {
-            &:has(p.other) {
+        article.item-article {
+            width: 55%;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 2em;
+    
+            h1 {
+                font-weight: 900;
+                font-family: 'Inter';
+                font-size: 2rem;
+                margin-bottom: 1em;
+            }
+    
+            section.item-buttons {
+                margin-top: 2em;
                 flex-grow: 1;
-                @include Flex(c, c);
-
-                p.other {
-                    font-size: .8rem;
-                    color: $clr-whitedr;
-
+                @include Flex(fs, fe);
+    
+                div.icon-button-div {
+                    margin-right: 1em;
+    
                     span {
-                        font-size: .9rem;
-                        color: $clr-bluel;
+                        border-radius: .5em;
+                        @include HoverBG;
+                        @include FullSize(60px);
+                        @include Flex(c, c);
+                        color: $clr-whitel;
+            
+                        svg {
+                            @include FullSize(50%);
+                        }
+                    }
+    
+                    &.item-download span { background: $clr-blued; }
+                    &.item-delete span { background: $clr-redl; }
+                }
+            }
+    
+            div {
+                @include Flex;
+                margin-bottom: .5em;
+    
+                p {
+                    width: 100%;
+                    min-width: min-content;
+    
+                    &.name {
+                        margin-right: 1em;
+                        display: flex;
+                        font-family: 'Inter';
+                        font-weight: 300;
+                        width: 30%;
+    
+                        span {
+                            margin-right: 1em;
+                            @include FullSize(30px);
+                        }
+                    }
+    
+                    &.value {
+                        width: 70%;
+                        text-align: right;
+                        font-family: 'UbuntuMono';
+                        font-weight: bold;
                     }
                 }
             }
-
-            video {
-                width: 100%;
-                aspect-ratio: 1;
+        }
+    
+        section.item-content {
+            width: 40%;
+            background: rgba(30, 30, 30, .25);
+            border-radius: .75em;
+            padding: 1em;
+            display: flex;
+            flex-direction: column;
+    
+            section.toggle-item-content {
+                @include Flex(fe, fe);
+                margin-bottom: 3em;
+    
+                p {
+                    font-size: .8rem;
+                    margin-right: .25em;
+                    text-transform: uppercase;
+                    font-family: 'Inter';
+                    font-weight: 800;
+                }
+    
+                span {
+                    @include FullSize(60px);
+                    cursor: pointer;
+                    background: $clr-greend;
+                    border-radius: .5em;
+                    display: block;
+                    @include Flex(c, c);
+    
+                    svg {
+                        @include FullSize(50%);
+                    }
+                }
             }
-
-            audio {
-                width: 100%;
-            }
-
-            p.text {
-                white-space: pre-wrap;
-                font-size: .8rem;
-                color: $clr-whitedr;
-            }
-
-            figure.item-preview {
-                overflow: hidden;
-                
-                img {
+    
+            section.content {
+                &:has(p.other) {
+                    flex-grow: 1;
+                    @include Flex(c, c);
+    
+                    p.other {
+                        font-size: .8rem;
+                        color: $clr-whitedr;
+    
+                        span {
+                            font-size: .9rem;
+                            color: $clr-bluel;
+                        }
+                    }
+                }
+    
+                video {
                     width: 100%;
+                    aspect-ratio: 1;
+                }
+    
+                audio {
+                    width: 100%;
+                }
+    
+                p.text {
+                    white-space: pre-wrap;
+                    font-size: .8rem;
+                    color: $clr-whitedr;
+                }
+    
+                figure.item-preview {
+                    overflow: hidden;
+                    
+                    img {
+                        width: 100%;
+                    }
                 }
             }
         }
